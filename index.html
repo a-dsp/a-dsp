@@ -1,0 +1,513 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="出動報告">
+<title>雨天出動 報告メール</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=BIZ+UDPGothic:wght@400;700&display=swap">
+<style>
+/* Layout: one narrow column for a phone. 宛先 at top, then ① 出動情報 → ② 報告の種類 → ③ 内容 → ④ 送る. 管理者欄は #admin のときだけ表示 */
+*,*::before,*::after{box-sizing:border-box}
+[hidden]{display:none!important}
+:root{
+  color-scheme:light;
+  --bg:#edf2f5; --surface:#ffffff; --field:#f6f9fb; --ink:#14212b; --muted:#566878; --line:#cbd7df;
+  --accent:#1f5f8b; --start:#c2410c; --prog:#1d4ed8; --end:#15803d; --miss:#b42318; --on:#ffffff;
+  --font:"BIZ UDPGothic","Hiragino Sans","Hiragino Kaku Gothic ProN","Yu Gothic UI","Meiryo",system-ui,sans-serif;
+  --cur:var(--start);
+}
+@media (prefers-color-scheme: dark){:root{
+  --bg:#0e161c; --surface:#16212a; --field:#1c2933; --ink:#e5edf2; --muted:#93a5b3; --line:#2c3c48;
+  --accent:#74b3de; --start:#fb8c4c; --prog:#86a8ff; --end:#4fd486; --miss:#ff7a6e; --on:#0e161c; color-scheme:dark}}
+body[data-type="prog"]{--cur:var(--prog)}
+body[data-type="end"]{--cur:var(--end)}
+
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font);font-size:17px;line-height:1.6;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  padding-top:calc(20px + env(safe-area-inset-top,0px));padding-bottom:calc(48px + env(safe-area-inset-bottom,0px))}
+.wrap{max-width:560px;margin:0 auto;display:flex;flex-direction:column;gap:18px}
+header{display:flex;flex-direction:column;gap:2px}
+.eyebrow{font-size:13px;color:var(--muted);letter-spacing:.04em}
+h1{font-size:24px;margin:0;line-height:1.3;text-wrap:balance}
+h2{font-size:17px;margin:0;display:flex;align-items:center;gap:8px}
+.num{display:inline-grid;place-items:center;width:26px;height:26px;border-radius:50%;background:var(--ink);color:var(--bg);font-size:14px}
+section{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:12px}
+label,.lbl{font-size:14px;color:var(--muted);display:block;margin-bottom:4px}
+input[type=text],input[type=tel],input[type=date],input[type=time],textarea{
+  width:100%;font:inherit;font-size:18px;color:var(--ink);background:var(--field);
+  border:1px solid var(--line);border-radius:10px;padding:10px 12px;min-height:48px}
+textarea{min-height:84px;resize:vertical;line-height:1.5}
+input:focus-visible,textarea:focus-visible,button:focus-visible,a:focus-visible,.seg label:focus-within{outline:3px solid var(--accent);outline-offset:2px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.grid2>*{min-width:0}
+.hint{font-size:13px;color:var(--muted);margin:0}
+
+.banner{padding:12px 14px;border-radius:12px;border:2px solid var(--end);color:var(--end);font-weight:700;background:var(--surface)}
+
+/* 宛先 */
+.rcpt{display:flex;flex-wrap:wrap;gap:6px}
+.rcpt span{font-size:14px;padding:4px 10px;border-radius:999px;background:var(--field);border:1px solid var(--line);overflow-wrap:anywhere;max-width:100%}
+.rcpt .none{color:var(--miss);border-color:var(--miss);font-weight:700;border-radius:10px}
+
+/* segmented choices */
+.seg{display:grid;gap:8px}
+.seg.c2{grid-template-columns:1fr 1fr}
+.seg.c3{grid-template-columns:repeat(3,1fr)}
+.seg input{position:absolute;opacity:0;pointer-events:none}
+.seg label{margin:0;display:flex;align-items:center;justify-content:center;text-align:center;min-height:52px;padding:6px;
+  border:2px solid var(--line);border-radius:12px;background:var(--field);color:var(--ink);font-size:17px;font-weight:700;cursor:pointer}
+.seg label.on{border-color:var(--accent);background:var(--accent);color:var(--on)}
+.types label{min-height:64px;font-size:19px;flex-direction:column;gap:0;line-height:1.2}
+.types small{font-size:12px;font-weight:400;opacity:.85}
+.types label[data-t="start"].on{background:var(--start);border-color:var(--start)}
+.types label[data-t="prog"].on{background:var(--prog);border-color:var(--prog)}
+.types label[data-t="end"].on{background:var(--end);border-color:var(--end)}
+.result label{justify-content:flex-start;text-align:left;padding:10px 14px;font-weight:400;font-size:16px}
+
+/* time rows */
+.trow{display:grid;grid-template-columns:auto 1fr auto;gap:8px;align-items:center}
+.trow+.trow{margin-top:8px}
+.trow>span{font-size:15px;color:var(--muted);width:2.6em}
+.trow input{min-width:0}
+.btn-s{font:inherit;font-size:15px;font-weight:700;min-height:48px;padding:0 14px;border-radius:10px;border:1px solid var(--line);
+  background:var(--surface);color:var(--accent);cursor:pointer}
+.staff{display:flex;flex-direction:column;gap:8px;padding:12px;border:1px dashed var(--line);border-radius:12px}
+.staff .t{font-size:14px;font-weight:700}
+.check{display:flex;gap:10px;align-items:center;font-size:16px;color:var(--ink);margin:0;min-height:44px}
+.check input{width:24px;height:24px;accent-color:var(--accent)}
+
+/* preview */
+.status{font-size:15px;font-weight:700;padding:8px 12px;border-radius:10px;background:var(--field);border:1px solid var(--line)}
+.status.bad{color:var(--miss);border-color:var(--miss)}
+.status.good{color:var(--end);border-color:var(--end)}
+.mail{border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.mail .row{padding:10px 12px;border-bottom:1px solid var(--line);background:var(--field);font-size:14px;overflow-wrap:anywhere}
+.mail .row b{color:var(--muted);font-weight:400;margin-right:6px}
+.mail pre{margin:0;padding:12px;white-space:pre-wrap;overflow-wrap:anywhere;font-family:var(--font);font-size:15px;line-height:1.7;background:var(--surface)}
+mark.miss{background:none;color:var(--miss);font-weight:700}
+
+/* send */
+.send{display:flex;flex-direction:column;gap:10px}
+.big{display:flex;align-items:center;justify-content:center;min-height:64px;border-radius:14px;font:inherit;font-size:20px;font-weight:700;
+  text-decoration:none;background:var(--cur);color:var(--on);border:0;cursor:pointer;text-align:center;padding:0 12px}
+.big.sub{background:var(--surface);color:var(--cur);border:2px solid var(--cur);font-size:17px;min-height:54px}
+.copies{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.copies button,.btn-m{font:inherit;font-size:15px;font-weight:700;min-height:52px;border-radius:12px;border:1px solid var(--line);background:var(--field);color:var(--ink);cursor:pointer;padding:4px 10px}
+.manual textarea{min-height:140px;font-size:14px}
+.reset{align-self:flex-start;font:inherit;font-size:14px;color:var(--muted);background:none;border:1px solid var(--line);border-radius:10px;padding:8px 12px;cursor:pointer;min-height:44px}
+.reset.arm{color:var(--miss);border-color:var(--miss);font-weight:700}
+
+/* admin */
+.admin{border:2px dashed var(--accent)}
+.admin h2{color:var(--accent)}
+.admin .out{font-size:13px;min-height:110px;overflow-wrap:anywhere}
+.warn{font-size:13px;color:var(--miss);margin:0}
+@media (max-width:380px){.copies{grid-template-columns:1fr}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <span class="eyebrow">大雨予報時のパトロール業務委託（概算契約）</span>
+    <h1>雨天出動 報告メール</h1>
+  </header>
+
+  <div class="banner" id="banner" hidden></div>
+
+  <!-- 管理者用（URLの最後に #admin を付けたときだけ表示） -->
+  <section class="admin" id="admin" hidden>
+    <h2>管理者用：設定入りリンクを作る</h2>
+    <div>
+      <label for="aTo">宛先メールアドレス（改行かカンマで区切る）</label>
+      <textarea id="aTo" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="例）aaa@example.jp&#10;bbb@example.jp"></textarea>
+    </div>
+    <div>
+      <label for="aCompany">会社名</label>
+      <input type="text" id="aCompany">
+    </div>
+    <button type="button" class="big" id="aMake" style="--cur:var(--accent)">設定入りリンクを作る</button>
+    <div id="aResult" hidden>
+      <label for="aOut">このリンクを配ってください（この端末にも反映済み）</label>
+      <textarea id="aOut" class="out" readonly></textarea>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
+        <button type="button" class="btn-m" id="aCopy">リンクをコピー</button>
+      </div>
+      <p class="warn" style="margin-top:8px">このリンクには宛先が入っています。関係者以外に転送しないよう伝えてください。宛先を変えたときは、作り直して配り直します。</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>宛先</h2>
+    <div class="rcpt" id="rcpt"></div>
+    <div class="grid2">
+      <div><span class="lbl">会社名</span><div id="companyView" style="font-weight:700;overflow-wrap:anywhere"></div></div>
+      <div><label for="me">報告する人の名前</label><input type="text" id="me" name="me" placeholder="例）山田"></div>
+    </div>
+    <p class="hint">宛先を変えたいときは管理者に連絡してください。</p>
+  </section>
+
+  <section>
+    <h2><span class="num">1</span>出動の情報</h2>
+    <div>
+      <span class="lbl">方面</span>
+      <div class="seg c2">
+        <label><input type="radio" name="area" value="東部方面" id="area-e">東部方面</label>
+        <label><input type="radio" name="area" value="南部方面" id="area-s">南部方面</label>
+      </div>
+    </div>
+    <div>
+      <span class="lbl">出動通知を受けた日時</span>
+      <div class="grid2">
+        <input type="date" id="rDate" name="rDate" aria-label="受信した日">
+        <input type="time" id="rTime" name="rTime" aria-label="受信した時刻">
+      </div>
+    </div>
+    <div class="staff">
+      <span class="t">担当者</span>
+      <div class="grid2">
+        <input type="text" id="n1" name="n1" placeholder="名前①" aria-label="担当者①の名前">
+        <input type="tel" id="p1" name="p1" placeholder="携帯番号①" aria-label="担当者①の携帯番号">
+        <input type="text" id="n2" name="n2" placeholder="名前②" aria-label="担当者②の名前">
+        <input type="tel" id="p2" name="p2" placeholder="携帯番号②" aria-label="担当者②の携帯番号">
+      </div>
+      <p class="hint">1人のときは②を空にすれば、メールから消えます。</p>
+    </div>
+    <button type="button" class="reset" id="resetBtn">新しい出動にする（時刻と内容を消す）</button>
+  </section>
+
+  <section>
+    <h2><span class="num">2</span>どの報告？</h2>
+    <div class="seg c3 types">
+      <label data-t="start"><input type="radio" name="type" value="start" id="t-start">出動<small>業務開始</small></label>
+      <label data-t="prog"><input type="radio" name="type" value="prog" id="t-prog">経過<small>継続・経過</small></label>
+      <label data-t="end"><input type="radio" name="type" value="end" id="t-end">終了<small>業務終了</small></label>
+    </div>
+  </section>
+
+  <section>
+    <h2><span class="num">3</span>内容</h2>
+
+    <div data-for="start">
+      <span class="lbl">従事対応時間域</span>
+      <div class="trow"><span>から</span><input type="time" id="planFrom" name="planFrom"><button type="button" class="btn-s" data-now="planFrom">今</button></div>
+      <div class="trow"><span>まで</span><input type="time" id="planTo" name="planTo"><button type="button" class="btn-s" data-now="planTo">今</button></div>
+    </div>
+
+    <div data-for="prog end">
+      <span class="lbl">実施済時間域</span>
+      <div class="trow"><span>から</span><input type="time" id="doneFrom" name="doneFrom"><button type="button" class="btn-s" data-now="doneFrom">今</button></div>
+      <div class="trow"><span>まで</span><input type="time" id="doneTo" name="doneTo"><button type="button" class="btn-s" data-now="doneTo">今</button></div>
+    </div>
+
+    <div data-for="prog end">
+      <span class="lbl">結果報告</span>
+      <div class="seg result">
+        <label><input type="radio" name="result" value="ok" id="r-ok">異常なし</label>
+        <label><input type="radio" name="result" value="ng" id="r-ng">異常あり（場所・連絡した担当者を入れる）</label>
+        <label><input type="radio" name="result" value="other" id="r-other">その他（自分で書く）</label>
+      </div>
+    </div>
+    <div data-for="prog end" data-result="ng" class="grid2">
+      <div><label for="place">異常があった場所</label><input type="text" id="place" name="place" placeholder="例）〇〇町3丁目交差点"></div>
+      <div><label for="cwo">連絡したCWO担当者</label><input type="text" id="cwo" name="cwo" placeholder="例）佐藤"></div>
+    </div>
+    <div data-for="prog end" data-result="other">
+      <label for="other">結果報告の内容</label>
+      <textarea id="other" name="other" placeholder="起きたことをそのまま書いてください"></textarea>
+    </div>
+
+    <div data-for="prog">
+      <span class="lbl">継続時間域</span>
+      <div class="trow"><span>から</span><input type="time" id="contFrom" name="contFrom"><button type="button" class="btn-s" data-now="contFrom">今</button></div>
+      <div class="trow"><span>まで</span><input type="time" id="contTo" name="contTo"><button type="button" class="btn-s" data-now="contTo">今</button></div>
+    </div>
+    <div data-for="prog" class="staff">
+      <label class="check"><input type="checkbox" id="contSame" name="contSame">継続の担当者も上と同じ</label>
+      <div class="grid2" id="contStaff">
+        <input type="text" id="cn1" name="cn1" placeholder="名前①" aria-label="継続担当者①の名前">
+        <input type="tel" id="cp1" name="cp1" placeholder="携帯番号①" aria-label="継続担当者①の携帯番号">
+        <input type="text" id="cn2" name="cn2" placeholder="名前②" aria-label="継続担当者②の名前">
+        <input type="tel" id="cp2" name="cp2" placeholder="携帯番号②" aria-label="継続担当者②の携帯番号">
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2><span class="num">4</span>確認して送る</h2>
+    <div class="status" id="status"></div>
+    <div class="mail">
+      <div class="row"><b>宛先</b><span id="pvTo"></span></div>
+      <div class="row"><b>件名</b><span id="pvSub"></span></div>
+      <pre id="pvBody"></pre>
+    </div>
+    <div class="send">
+      <a class="big" id="mailtoBtn" href="#">メールを作る</a>
+      <a class="big sub" id="gmailBtn" href="#" target="_blank" rel="noopener">Gmailで作る</a>
+      <p class="hint">メールの画面が開いたら、中身を確かめて「送信」を押せば完了です。開かないときは下のボタンでコピーして、自分のメールに貼り付けてください。</p>
+      <div class="copies">
+        <button type="button" id="cpTo">宛先をコピー</button>
+        <button type="button" id="cpSub">件名をコピー</button>
+        <button type="button" id="cpBody">本文をコピー</button>
+      </div>
+      <div class="manual" id="manualBox" hidden>
+        <label for="manual" id="manualLbl">長押しして「コピー」を選んでください</label>
+        <textarea id="manual" readonly></textarea>
+      </div>
+    </div>
+  </section>
+</div>
+
+<script>
+(function(){
+  var $ = function(id){ return document.getElementById(id); };
+  var KEY = 'rainReport.form.v1';
+  var CFG = 'rainReport.cfg.v1';
+  var FIELDS = ['me','area','rDate','rTime','n1','p1','n2','p2','type',
+    'planFrom','planTo','doneFrom','doneTo','result','place','cwo','other','contSame','cn1','cp1','cn2','cp2','contFrom','contTo'];
+  var WD = ['日','月','火','水','木','金','土'];
+  var TITLE = { start:'業務開始報告', prog:'業務実施状況（継続・経過報告）', end:'業務終了報告' };
+  var KUBUN = { start:'業務開始報告', prog:'継続・経過報告', end:'業務終了報告' };
+  var CONTRACT = '（大雨予報時のパトロール業務委託（概算契約））';
+  var DEFAULT_COMPANY = 'ミザック株式会社';
+
+  // ---- storage ----
+  function lsGet(k){ try { return JSON.parse(localStorage.getItem(k)); } catch(e){ return null; } }
+  function lsSet(k,v){ try { localStorage.setItem(k, JSON.stringify(v)); return true; } catch(e){ return false; } }
+
+  // ---- config link (#c=...) ----
+  function b64e(str){
+    var b = btoa(unescape(encodeURIComponent(str)));
+    return b.replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+  }
+  function b64d(s){
+    s = s.replace(/-/g,'+').replace(/_/g,'/'); while(s.length % 4) s += '=';
+    return decodeURIComponent(escape(atob(s)));
+  }
+  function parseList(t){ return (t || '').split(/[\s,、;；]+/).filter(function(x){ return x; }); }
+
+  var cfg = lsGet(CFG) || { to: [], company: DEFAULT_COMPANY };
+  var hash = location.hash || '';
+  if(hash.indexOf('#c=') === 0){
+    try {
+      var c = JSON.parse(b64d(hash.slice(3)));
+      if(c && Array.isArray(c.to)){
+        cfg = { to: c.to, company: c.company || DEFAULT_COMPANY };
+        var ok = lsSet(CFG, cfg);
+        showBanner(ok ? '宛先を設定しました（' + cfg.to.length + '件）。次からはこのページを開くだけで使えます。'
+                      : '宛先を読み込みました。ただしこの端末では保存できないため、次回も同じリンクから開いてください。');
+      }
+    } catch(e){ showBanner('設定リンクが読み取れませんでした。管理者にもう一度送ってもらってください。', true); }
+    try { history.replaceState(null, '', location.pathname + location.search); } catch(e){}
+  }
+  function showBanner(msg, bad){
+    var b = $('banner'); b.textContent = msg; b.hidden = false;
+    if(bad){ b.style.borderColor = 'var(--miss)'; b.style.color = 'var(--miss)'; }
+  }
+
+  // ---- admin ----
+  function adminCheck(){
+    var on = location.hash === '#admin';
+    $('admin').hidden = !on;
+    if(on){ $('aTo').value = cfg.to.join('\n'); $('aCompany').value = cfg.company || DEFAULT_COMPANY; }
+  }
+  adminCheck();
+  window.addEventListener('hashchange', adminCheck);
+  $('aMake').addEventListener('click', function(){
+    var to = parseList($('aTo').value);
+    var company = $('aCompany').value.trim() || DEFAULT_COMPANY;
+    cfg = { to: to, company: company };
+    lsSet(CFG, cfg);
+    var base = location.href.split('#')[0];
+    $('aOut').value = base + '#c=' + b64e(JSON.stringify(cfg));
+    $('aResult').hidden = false;
+    render();
+  });
+  $('aCopy').addEventListener('click', function(){ copy($('aOut').value, this, 'リンク'); });
+
+  // ---- form helpers ----
+  function els(k){ return document.querySelectorAll('[name="'+k+'"]'); }
+  function get(k){
+    var list = els(k); if(!list.length) return '';
+    var e = list[0];
+    if(e.type === 'radio'){ for(var i=0;i<list.length;i++){ if(list[i].checked) return list[i].value; } return ''; }
+    if(e.type === 'checkbox') return e.checked;
+    return e.value.trim();
+  }
+  function set(k, v){
+    var list = els(k); if(!list.length) return;
+    var e = list[0];
+    if(e.type === 'radio'){ for(var i=0;i<list.length;i++){ list[i].checked = (list[i].value === v); } return; }
+    if(e.type === 'checkbox'){ e.checked = !!v; return; }
+    e.value = (v == null ? '' : v);
+  }
+  function save(){ var o = {}; FIELDS.forEach(function(k){ o[k] = get(k); }); lsSet(KEY, o); }
+  function pad(n){ return (n<10?'0':'') + n; }
+  function nowParts(){
+    var d = new Date();
+    return { date: d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()), time: pad(d.getHours())+':'+pad(d.getMinutes()) };
+  }
+
+  // ---- init form ----
+  var s = lsGet(KEY) || {};
+  FIELDS.forEach(function(k){ if(s[k] !== undefined) set(k, s[k]); });
+  if(!get('area')) set('area','東部方面');
+  if(!get('type')) set('type','start');
+  if(!get('result')) set('result','ok');
+  if(s.contSame === undefined) set('contSame', true);
+  if(!get('rDate') || !get('rTime')){ var n = nowParts(); set('rDate', n.date); set('rTime', n.time); }
+  fillDefaults();
+
+  function fillDefaults(){
+    var t = get('type'), r = get('rTime'), n = nowParts().time;
+    if(t === 'start' && !get('planFrom')) set('planFrom', r);
+    if(t !== 'start'){
+      if(!get('doneFrom')) set('doneFrom', r);
+      if(!get('doneTo')) set('doneTo', n);
+    }
+    if(t === 'prog' && !get('contFrom')) set('contFrom', get('doneTo') || n);
+  }
+
+  // ---- build mail ----
+  function ph(v){ return v ? v : '●'; }
+  function range(a,b){ return ph(a) + '～' + ph(b); }
+  function staffLines(n1,p1,n2,p2){
+    var L = ['担当者氏名および連絡先：' + ph(n1) + '（' + ph(p1) + '）'];
+    if(n2 || p2) L.push('担当者氏名および連絡先：' + ph(n2) + '（' + ph(p2) + '）');
+    return L;
+  }
+  function recv(){
+    var d = get('rDate'), t = get('rTime'), ds = '●年●月●日（●）', ts = '●時●分';
+    if(d){ var p = d.split('-'); var dt = new Date(+p[0], +p[1]-1, +p[2]);
+      ds = p[0]+'年'+(+p[1])+'月'+(+p[2])+'日（'+WD[dt.getDay()]+'）'; }
+    if(t){ var q = t.split(':'); ts = (+q[0])+'時'+q[1]+'分'; }
+    return ds + ' ' + ts;
+  }
+  function resultText(){
+    var r = get('result');
+    if(r === 'ng') return 'パトロールを実施した結果、' + ph(get('place')) + 'にて下水道施設に異常がある事を発見しましたので、CWO担当者' + ph(get('cwo')) + '様に連絡し対応図ってもらいました。';
+    if(r === 'other') return ph(get('other'));
+    return 'パトロールを実施した結果、道路及び道路上の下水道施設については、異常が見受けられませんでした。';
+  }
+  function build(){
+    var t = get('type');
+    var sub = '[' + get('area') + ']「' + TITLE[t] + '」について' + CONTRACT;
+    var staff = staffLines(get('n1'),get('p1'),get('n2'),get('p2'));
+    var L = ['関係各位','','いつもお世話になっております。', (cfg.company || DEFAULT_COMPANY) + 'の' + ph(get('me')) + 'です。','',
+      '首記の件、' + recv() + 'に出動通知の受信に従って、次の内容で報告致します。',
+      '報告区分：' + KUBUN[t]];
+    if(t === 'start'){
+      L.push('従事対応時間域：' + range(get('planFrom'), get('planTo')));
+      L = L.concat(staff);
+    } else {
+      if(t === 'prog') L.push('');
+      L.push('実施済時間域：' + range(get('doneFrom'), get('doneTo')));
+      L = L.concat(staff);
+      L.push('結果報告：', resultText());
+      if(t === 'prog'){
+        L.push('', '継続時間域：' + range(get('contFrom'), get('contTo')));
+        L = L.concat(get('contSame') ? staff : staffLines(get('cn1'),get('cp1'),get('cn2'),get('cp2')));
+      }
+    }
+    L.push('', '以上、ご確認のほどよろしくお願いいたします。');
+    return { to: cfg.to.slice(), sub: sub, body: L.join('\n') };
+  }
+
+  function esc(x){ return x.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+  function marked(x){ return esc(x).replace(/●/g,'<mark class="miss">●</mark>'); }
+
+  var current = null;
+  function render(){
+    var t = get('type');
+    document.body.setAttribute('data-type', t);
+    document.querySelectorAll('.seg label').forEach(function(l){ var i = l.querySelector('input'); l.classList.toggle('on', !!(i && i.checked)); });
+    var r = get('result');
+    document.querySelectorAll('[data-for]').forEach(function(el){
+      var show = el.getAttribute('data-for').split(' ').indexOf(t) > -1;
+      var need = el.getAttribute('data-result');
+      if(need && need !== r) show = false;
+      el.hidden = !show;
+    });
+    $('contStaff').hidden = !!get('contSame');
+
+    var rc = $('rcpt'); rc.innerHTML = '';
+    if(cfg.to.length){ cfg.to.forEach(function(a){ var sp = document.createElement('span'); sp.textContent = a; rc.appendChild(sp); }); }
+    else { var sp = document.createElement('span'); sp.className = 'none'; sp.textContent = '未設定：管理者から届いた設定リンクを開いてください'; rc.appendChild(sp); }
+    $('companyView').textContent = cfg.company || DEFAULT_COMPANY;
+
+    var m = current = build();
+    var to = m.to.join(', ');
+    $('pvTo').innerHTML = to ? esc(to) : '<mark class="miss">● 宛先が未設定です</mark>';
+    $('pvSub').textContent = m.sub;
+    $('pvBody').innerHTML = marked(m.body);
+
+    var miss = (m.body.match(/●/g) || []).length;
+    var st = $('status');
+    if(!m.to.length){ st.className = 'status bad'; st.textContent = '宛先が入っていません。管理者から届いた設定リンクを開いてください。'; }
+    else if(miss){ st.className = 'status bad'; st.textContent = 'あと ' + miss + ' か所、赤い ● が未入力です'; }
+    else { st.className = 'status good'; st.textContent = 'すべて入力済みです。下のボタンで送れます'; }
+
+    var enc = encodeURIComponent;
+    $('mailtoBtn').href = 'mailto:' + m.to.join(',') + '?subject=' + enc(m.sub) + '&body=' + enc(m.body.replace(/\n/g,'\r\n'));
+    $('gmailBtn').href = 'https://mail.google.com/mail/?view=cm&fs=1&to=' + enc(m.to.join(',')) + '&su=' + enc(m.sub) + '&body=' + enc(m.body);
+    save();
+  }
+
+  document.addEventListener('input', function(e){ if(!$('admin').contains(e.target)) render(); });
+  document.addEventListener('change', function(e){
+    if($('admin').contains(e.target)) return;
+    if(e.target.name === 'type') fillDefaults();
+    render();
+  });
+  document.querySelectorAll('[data-now]').forEach(function(b){
+    b.addEventListener('click', function(){ set(b.getAttribute('data-now'), nowParts().time); render(); });
+  });
+
+  // reset: two-step, in page
+  var armTimer = null, rb = $('resetBtn'), rbText = rb.textContent;
+  rb.addEventListener('click', function(){
+    if(!rb.classList.contains('arm')){
+      rb.classList.add('arm'); rb.textContent = 'もう一度押すと消します';
+      armTimer = setTimeout(function(){ rb.classList.remove('arm'); rb.textContent = rbText; }, 4000);
+      return;
+    }
+    clearTimeout(armTimer); rb.classList.remove('arm'); rb.textContent = rbText;
+    var n = nowParts();
+    set('rDate', n.date); set('rTime', n.time);
+    ['planFrom','planTo','doneFrom','doneTo','contFrom','contTo','place','cwo','other'].forEach(function(k){ set(k,''); });
+    set('result','ok'); set('type','start');
+    fillDefaults(); render();
+  });
+
+  // copy
+  function flash(btn, msg){
+    var t = btn.getAttribute('data-label') || btn.textContent;
+    btn.setAttribute('data-label', t); btn.textContent = msg;
+    setTimeout(function(){ btn.textContent = t; }, 1800);
+  }
+  function manual(text, what){
+    $('manualBox').hidden = false;
+    $('manualLbl').textContent = what + '：長押しして「コピー」を選んでください';
+    var ta = $('manual'); ta.value = text; ta.focus(); ta.select();
+  }
+  function copy(text, btn, what){
+    $('manualBox').hidden = true;
+    try {
+      navigator.clipboard.writeText(text).then(function(){ flash(btn,'コピーしました'); }, function(){ manual(text, what); });
+    } catch(e){ manual(text, what); }
+  }
+  $('cpTo').addEventListener('click', function(){ copy(current.to.join(', '), this, '宛先'); });
+  $('cpSub').addEventListener('click', function(){ copy(current.sub, this, '件名'); });
+  $('cpBody').addEventListener('click', function(){ copy(current.body, this, '本文'); });
+
+  render();
+})();
+</script>
+</body>
+</html>
