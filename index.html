@@ -53,6 +53,13 @@ input:focus-visible,textarea:focus-visible,button:focus-visible,a:focus-visible,
 .grid2.ppl input{font-size:16px;padding-inline:10px}
 .hint{font-size:13px;color:var(--muted);margin:0}
 .stack{display:flex;flex-direction:column;gap:10px}
+.abn{display:flex;flex-direction:column;gap:10px;padding:12px;border:1px solid var(--line);border-radius:12px;background:var(--field)}
+.abn input,.abn textarea{background:var(--surface)}
+.abn textarea{min-height:64px}
+.abnhead{display:flex;justify-content:space-between;align-items:center;gap:8px;min-height:36px}
+.abnhead b{font-size:15px}
+.btn-x{font:inherit;font-size:13px;color:var(--miss);background:none;border:1px solid var(--line);border-radius:8px;padding:4px 10px;min-height:36px;cursor:pointer}
+.btn-add{font:inherit;font-size:15px;font-weight:700;min-height:48px;border-radius:12px;border:2px dashed var(--line);background:none;color:var(--accent);cursor:pointer}
 
 .banner{padding:12px 14px;border-radius:12px;border:2px solid var(--end);color:var(--end);font-weight:700;background:var(--surface)}
 
@@ -225,13 +232,35 @@ mark.miss{background:none;color:var(--miss);font-weight:700}
       <span class="lbl">結果報告</span>
       <div class="seg result">
         <label><input type="radio" name="result" value="ok" id="r-ok">異常なし</label>
-        <label><input type="radio" name="result" value="ng" id="r-ng">異常あり（場所・連絡した担当者を入れる）</label>
+        <label><input type="radio" name="result" value="ng" id="r-ng">異常あり（場所・内容・対応を入れる）</label>
         <label><input type="radio" name="result" value="other" id="r-other">その他（自分で書く）</label>
       </div>
     </div>
     <div data-for="prog end" data-result="ng" class="stack">
-      <div><label for="place">異常があった場所</label><input type="text" id="place" name="place" placeholder="例）〇〇町3丁目交差点"></div>
-      <div><label for="cwo">連絡したCWO担当者</label><input type="text" id="cwo" name="cwo" placeholder="例）佐藤"></div>
+      <input type="hidden" id="abnN" name="abnN" value="1">
+      <div class="abn" id="abn1">
+        <div class="abnhead"><b>異常 1件目</b></div>
+        <div><label for="place1">所在地</label><input type="text" id="place1" name="place1" placeholder="例）生野区中川4丁目 〇〇付近"></div>
+        <div><label for="what1">異常内容</label><input type="text" id="what1" name="what1" placeholder="例）マンホールより水柱"></div>
+        <div><label for="cwo1">連絡したCWO担当者（連絡したときだけ）</label><input type="text" id="cwo1" name="cwo1" placeholder="例）佐藤"></div>
+        <div><label for="act1">対応内容（連絡以外にしたこと）</label><textarea id="act1" name="act1" placeholder="例）約10ｍ後方より自主警備実施（CWOと交代まで）"></textarea></div>
+      </div>
+      <div class="abn" id="abn2" hidden>
+        <div class="abnhead"><b>異常 2件目</b><button type="button" class="btn-x" data-del="2">この件を消す</button></div>
+        <div><label for="place2">所在地</label><input type="text" id="place2" name="place2" placeholder="例）生野区中川4丁目 〇〇付近"></div>
+        <div><label for="what2">異常内容</label><input type="text" id="what2" name="what2" placeholder="例）マンホールより水柱"></div>
+        <div><label for="cwo2">連絡したCWO担当者（連絡したときだけ）</label><input type="text" id="cwo2" name="cwo2" placeholder="例）佐藤"></div>
+        <div><label for="act2">対応内容（連絡以外にしたこと）</label><textarea id="act2" name="act2" placeholder="例）約10ｍ後方より自主警備実施（CWOと交代まで）"></textarea></div>
+      </div>
+      <div class="abn" id="abn3" hidden>
+        <div class="abnhead"><b>異常 3件目</b><button type="button" class="btn-x" data-del="3">この件を消す</button></div>
+        <div><label for="place3">所在地</label><input type="text" id="place3" name="place3" placeholder="例）生野区中川4丁目 〇〇付近"></div>
+        <div><label for="what3">異常内容</label><input type="text" id="what3" name="what3" placeholder="例）マンホールより水柱"></div>
+        <div><label for="cwo3">連絡したCWO担当者（連絡したときだけ）</label><input type="text" id="cwo3" name="cwo3" placeholder="例）佐藤"></div>
+        <div><label for="act3">対応内容（連絡以外にしたこと）</label><textarea id="act3" name="act3" placeholder="例）約10ｍ後方より自主警備実施（CWOと交代まで）"></textarea></div>
+      </div>
+      <button type="button" class="btn-add" id="addAbn">＋ 異常をもう1件追加（3件まで）</button>
+      <p class="hint">写真は、メールの画面が開いたあとに添付してください。</p>
     </div>
     <div data-for="prog end" data-result="other">
       <label for="other">結果報告の内容</label>
@@ -287,12 +316,12 @@ mark.miss{background:none;color:var(--miss);font-weight:700}
   var KEY = 'rainReport.form.v1';
   var CFG = 'rainReport.cfg.v1';
   var FIELDS = ['me','area','rDate','rTime','n1','p1','n2','p2','type',
-    'planFrom','planTo','doneFrom','doneTo','result','place','cwo','other','contSame','cn1','cp1','cn2','cp2','contFrom','contTo'];
+    'planFrom','planTo','doneFrom','doneTo','result','abnN','place1','what1','cwo1','act1','place2','what2','cwo2','act2','place3','what3','cwo3','act3','other','contSame','cn1','cp1','cn2','cp2','contFrom','contTo'];
   var WD = ['日','月','火','水','木','金','土'];
   var TITLE = { start:'業務開始報告', prog:'業務実施状況（継続・経過報告）', end:'業務終了報告' };
   var KUBUN = { start:'業務開始報告', prog:'継続・経過報告', end:'業務終了報告' };
   var CONTRACT = '（大雨予報時のパトロール業務委託（概算契約））';
-  var DEFAULT_COMPANY = '';
+  var DEFAULT_COMPANY = 'ミザック株式会社';
 
   // ---- storage ----
   function lsGet(k){ try { return JSON.parse(localStorage.getItem(k)); } catch(e){ return null; } }
@@ -376,6 +405,9 @@ mark.miss{background:none;color:var(--miss);font-weight:700}
   // ---- init form ----
   var s = lsGet(KEY) || {};
   FIELDS.forEach(function(k){ if(s[k] !== undefined) set(k, s[k]); });
+  if(s.place && s.place1 === undefined) set('place1', s.place);
+  if(s.cwo && s.cwo1 === undefined) set('cwo1', s.cwo);
+  if(!(+get('abnN') >= 1)) set('abnN', '1');
   if(!get('area')) set('area','東部方面');
   if(!get('type')) set('type','start');
   if(!get('result')) set('result','ok');
@@ -408,9 +440,26 @@ mark.miss{background:none;color:var(--miss);font-weight:700}
     if(t){ var q = t.split(':'); ts = (+q[0])+'時'+q[1]+'分'; }
     return ds + ' ' + ts;
   }
+  function abnCount(){ var n = +get('abnN'); return (n >= 1 && n <= 3) ? n : 1; }
+  function showAbn(){
+    var n = abnCount();
+    for(var i=1;i<=3;i++) $('abn'+i).hidden = i > n;
+    $('addAbn').hidden = n >= 3;
+  }
   function resultText(){
     var r = get('result');
-    if(r === 'ng') return 'パトロールを実施した結果、' + ph(get('place')) + 'にて下水道施設に異常がある事を発見しましたので、CWO担当者' + ph(get('cwo')) + '様に連絡し対応図ってもらいました。';
+    if(r === 'ng'){
+      var n = abnCount(), L = ['パトロールを実施した結果、下記のとおり下水道施設の異常を確認しました。'];
+      for(var i=1;i<=n;i++){
+        var cwo = get('cwo'+i), act = get('act'+i), how;
+        if(cwo && act) how = 'CWO担当者' + cwo + '様へ連絡。' + act;
+        else if(cwo) how = 'CWO担当者' + cwo + '様へ連絡し、対応を依頼しました。';
+        else how = ph(act);
+        if(n > 1) L.push('【' + i + '件目】');
+        L.push('所在地：' + ph(get('place'+i)), '異常内容：' + ph(get('what'+i)), '対応内容：' + how);
+      }
+      return L.join('\n');
+    }
     if(r === 'other') return ph(get('other'));
     return 'パトロールを実施した結果、道路及び道路上の下水道施設については、異常が見受けられませんでした。';
   }
@@ -454,6 +503,7 @@ mark.miss{background:none;color:var(--miss);font-weight:700}
       el.hidden = !show;
     });
     $('contStaff').hidden = !!get('contSame');
+    showAbn();
 
     function chips(box, list, empty){
       box.innerHTML = '';
@@ -497,6 +547,22 @@ mark.miss{background:none;color:var(--miss);font-weight:700}
     b.addEventListener('click', function(){ set(b.getAttribute('data-now'), nowParts().time); render(); });
   });
 
+  // abnormal items
+  var AK = ['place','what','cwo','act'];
+  $('addAbn').addEventListener('click', function(){
+    var n = abnCount(); if(n >= 3) return;
+    set('abnN', String(n+1)); render();
+    var f = $('place'+(n+1)); if(f) f.focus();
+  });
+  document.querySelectorAll('[data-del]').forEach(function(b){
+    b.addEventListener('click', function(){
+      var d = +b.getAttribute('data-del'), n = abnCount();
+      for(var i=d;i<n;i++) AK.forEach(function(k){ set(k+i, get(k+(i+1))); });
+      AK.forEach(function(k){ set(k+n, ''); });
+      set('abnN', String(Math.max(1, n-1))); render();
+    });
+  });
+
   // reset: two-step, in page
   var armTimer = null, rb = $('resetBtn'), rbText = rb.textContent;
   rb.addEventListener('click', function(){
@@ -508,7 +574,9 @@ mark.miss{background:none;color:var(--miss);font-weight:700}
     clearTimeout(armTimer); rb.classList.remove('arm'); rb.textContent = rbText;
     var n = nowParts();
     set('rDate', n.date); set('rTime', n.time);
-    ['planFrom','planTo','doneFrom','doneTo','contFrom','contTo','place','cwo','other'].forEach(function(k){ set(k,''); });
+    ['planFrom','planTo','doneFrom','doneTo','contFrom','contTo','other'].forEach(function(k){ set(k,''); });
+    [1,2,3].forEach(function(i){ AK.forEach(function(k){ set(k+i,''); }); });
+    set('abnN','1');
     set('result','ok'); set('type','start');
     fillDefaults(); render();
   });
