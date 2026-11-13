@@ -63,6 +63,8 @@ input:focus-visible,textarea:focus-visible,button:focus-visible,a:focus-visible,
 
 .banner{padding:12px 14px;border-radius:12px;border:2px solid var(--end);color:var(--end);font-weight:700;background:var(--surface)}
 .banner.bad{border-color:var(--miss);color:var(--miss)}
+.paste summary{cursor:pointer;font-size:14px;color:var(--accent);font-weight:700;min-height:44px;display:flex;align-items:center}
+.paste textarea{min-height:72px;font-size:14px;overflow-wrap:anywhere}
 
 /* 宛先 */
 .rcpt{display:flex;flex-wrap:wrap;gap:6px}
@@ -180,6 +182,15 @@ mark.miss{background:none;color:var(--miss);font-weight:700}
       <div><label for="me">報告する人の名前</label><input type="text" id="me" name="me" placeholder="例）山田"></div>
     </div>
     <p class="hint">宛先を変えたいときは管理者に連絡してください。</p>
+    <details class="paste" id="pasteBox">
+      <summary>届いた設定入りリンクを貼り付けて読み込む</summary>
+      <div class="stack" style="margin-top:8px">
+        <label for="pasteIn" class="hint">リンクを開いても宛先が入らないとき（ホーム画面のアイコンから開いたときなど）は、届いたリンクを長押しでコピーして、ここに貼り付けてください。</label>
+        <textarea id="pasteIn" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="https://a-dsp.github.io/a-dsp/…#c=…"></textarea>
+        <button type="button" class="btn-m" id="pasteGo">読み込む</button>
+        <p class="warn" id="pasteMsg" hidden></p>
+      </div>
+    </details>
   </section>
 
   <section>
@@ -356,31 +367,45 @@ mark.miss{background:none;color:var(--miss);font-weight:700}
   // # 以降はサーバーには送られない。t は作成時刻で、古いリンクで新しい設定を上書きしないために使う。
   var cfg = lsGet(CFG) || { to: [], cc: [], company: DEFAULT_COMPANY };
   if(!Array.isArray(cfg.cc)) cfg.cc = [];
+  function decodeCfg(code){ // #c= のあとの文字列 → 設定（読めなければ null）
+    var c = JSON.parse(b64d(code));
+    if(!c || !Array.isArray(c.to)) return null;
+    return { to: c.to, cc: Array.isArray(c.cc) ? c.cc : [], company: c.company || DEFAULT_COMPANY, t: +c.t || 0 };
+  }
+  function setUrlCfg(){ try { history.replaceState(null, '', location.pathname + location.search + '#c=' + b64e(JSON.stringify(cfg))); } catch(e){} }
+  function applyCfg(nc){
+    cfg = nc;
+    var ok = lsSet(CFG, cfg);
+    setUrlCfg();
+    showBanner(ok ? '宛先を設定しました（TO ' + cfg.to.length + '件' + (cfg.cc.length ? '・CC ' + cfg.cc.length + '件' : '') + '）。次からはこのページを開くだけで使えます。'
+                  : '宛先を読み込みました。ただしこの端末では保存できないため、次回も同じリンクから開いてください。');
+  }
   var hash = location.hash || '';
   if(hash.indexOf('#c=') === 0){
     try {
-      var c = JSON.parse(b64d(hash.slice(3)));
-      if(c && Array.isArray(c.to)){
-        var nc = { to: c.to, cc: Array.isArray(c.cc) ? c.cc : [], company: c.company || DEFAULT_COMPANY, t: +c.t || 0 };
+      var nc = decodeCfg(hash.slice(3));
+      if(nc){
         var same = JSON.stringify(nc) === JSON.stringify(cfg);
-        if(!same && nc.t >= (+cfg.t || 0)){
-          cfg = nc;
-          var ok = lsSet(CFG, cfg);
-          showBanner(ok ? '宛先を設定しました（TO ' + cfg.to.length + '件' + (cfg.cc.length ? '・CC ' + cfg.cc.length + '件' : '') + '）。次からはこのページを開くだけで使えます。'
-                        : '宛先を読み込みました。ただしこの端末では保存できないため、次回も同じリンクから開いてください。');
-        } else if(!same){ // 古いリンク：無視して、URLも今の設定に置き換える
-          try { history.replaceState(null, '', location.pathname + location.search + '#c=' + b64e(JSON.stringify(cfg))); } catch(e){}
-        }
+        if(!same && nc.t >= (+cfg.t || 0)) applyCfg(nc);
+        else if(!same) setUrlCfg(); // 古いリンク：無視して、URLも今の設定に置き換える
       }
     } catch(e){ showBanner('設定リンクが読み取れませんでした。管理者にもう一度送ってもらってください。', true); }
   }
   function cfgLink(){ return location.origin + location.pathname + '?openExternalBrowser=1#c=' + b64e(JSON.stringify(cfg)); }
-  function keepCfgInUrl(){ // 宛先があるのにURLに設定がないときは付け直す（このあと「ホーム画面に追加」しても引き継がれる）
-    if(cfg.to.length && !location.hash){
-      try { history.replaceState(null, '', location.pathname + location.search + '#c=' + b64e(JSON.stringify(cfg))); } catch(e){}
-    }
-  }
-  keepCfgInUrl();
+  // 宛先があるのにURLに設定がないときは付け直す（このあと「ホーム画面に追加」しても引き継がれる。
+  // iPhoneのSafariはしばらく使わないと保存内容を消すことがあるが、URLに残っていれば開き直すだけで戻る）
+  if(cfg.to.length && !location.hash) setUrlCfg();
+  if(!cfg.to.length) $('pasteBox').open = true;
+
+  // 貼り付けで読み込む（アプリ内ブラウザ・ホーム画面アイコンなど、リンクを開けない場面のため）
+  $('pasteGo').addEventListener('click', function(){
+    var m = /#c=([A-Za-z0-9_-]+)/.exec($('pasteIn').value), msg = $('pasteMsg'), nc = null;
+    try { nc = m && decodeCfg(m[1]); } catch(e){}
+    if(!nc){ msg.textContent = '設定入りリンクが見つかりませんでした。届いたリンクを最後まで全部コピーして貼り付けてください。'; msg.hidden = false; return; }
+    msg.hidden = true; $('pasteIn').value = '';
+    applyCfg(nc); $('pasteBox').open = false;
+    render(); window.scrollTo(0, 0);
+  });
   function showBanner(msg, bad){
     var b = $('banner'); b.textContent = msg; b.hidden = false;
     if(bad){ b.style.borderColor = 'var(--miss)'; b.style.color = 'var(--miss)'; }
@@ -582,7 +607,7 @@ mark.miss{background:none;color:var(--miss);font-weight:700}
 
     var miss = (m.body.match(/●/g) || []).length;
     var st = $('status');
-    if(!m.to.length){ st.className = 'status bad'; st.textContent = '宛先が入っていません。管理者から届いた設定リンクを開いてください。'; }
+    if(!m.to.length){ st.className = 'status bad'; st.textContent = '宛先が入っていません。管理者から届いた設定入りリンクを開くか、上の「貼り付けて読み込む」に貼り付けてください。'; }
     else if(miss){ st.className = 'status bad'; st.textContent = 'あと ' + miss + ' か所、赤い ● が未入力です'; }
     else { st.className = 'status good'; st.textContent = 'すべて入力済みです。下のボタンで送れます'; }
 
