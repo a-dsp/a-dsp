@@ -24,9 +24,9 @@ if (FONT / '400.css').exists():
 
 cfg = {"to": ["report1@example.jp", "report2@example.jp"], "cc": ["copy1@example.jp"], "company": "ミザック株式会社"}
 def b64e(s): return base64.urlsafe_b64encode(s.encode()).decode().rstrip('=')
-base_form = {"me": "山田", "area": "東部方面", "rDate": "2026-11-05", "rTime": "21:10", "n1": "山田 太郎", "p1": "090-0000-0000",
-  "n2": "佐藤 次郎", "p2": "090-1111-1111", "type": "start", "planFrom": "21:10", "planTo": "06:00", "doneFrom": "21:10", "doneTo": "00:30",
-  "result": "ok", "abnN": "1", "other": "", "contSame": True, "cn1": "", "cp1": "", "cn2": "", "cp2": "", "contFrom": "00:30", "contTo": "06:00"}
+base_form = {"me": "山田", "area": "東部方面", "rDate": "2026-11-05", "rTime": "23:00", "n1": "山田 太郎", "p1": "090-0000-0000",
+  "n2": "佐藤 次郎", "p2": "090-1111-1111", "type": "start", "planB": "0", "doneB": "0",
+  "result": "ok", "abnN": "1", "other": "", "contSame": True, "cn1": "", "cp1": "", "cn2": "", "cp2": "", "contB": "3"}
 
 def shot(page, sels, name, pad=6):
     bx = [page.locator(s).first.bounding_box() for s in sels]
@@ -52,13 +52,13 @@ with sync_playwright() as p:
     pg = newpage(form=base_form, cfg_store=cfg)
     shot(pg, ['section:has(#rDate)'], '02_info.png')
     shot(pg, ['section:has(#t-start)'], '03_type.png')
-    shot(pg, ['section:has(#planFrom)'], '04_start.png')
+    shot(pg, ['section:has([data-block=planB])'], '04_start.png')
     shot(pg, ['section:has(#status)'], '05_send.png')
-    f = dict(base_form, type='end', result='ng', doneTo='05:40', abnN='1', place1='生野区中川4丁目 〇〇付近',
+    f = dict(base_form, type='end', result='ng', doneB='3', abnN='1', place1='生野区中川4丁目 〇〇付近',
              what1='マンホールより水柱', cwo1='鈴木', act1='約10ｍ後方より自主警備実施（CWOと交代まで）')
     pg = newpage(form=f, cfg_store=cfg)
-    shot(pg, ['section:has(#planFrom)'], '06_prog.png')
-    pg = newpage(form=dict(base_form, planTo='', p2=''), cfg_store=cfg)
+    shot(pg, ['section:has([data-block=planB])'], '06_prog.png')
+    pg = newpage(form=dict(base_form, rTime='', p2=''), cfg_store=cfg)
     shot(pg, ['#status', '.mail'], '07_missing.png')
     shot(pg, ['.copies'], '08_copy.png')
     pg = newpage(form=base_form, cfg_store=cfg)
@@ -67,7 +67,7 @@ with sync_playwright() as p:
     pg = newpage(url=PAGE + '#admin')
     pg.fill('#aTo', "report1@example.jp\nreport2@example.jp"); pg.fill('#aCc', "copy1@example.jp")
     pg.click('#aMake'); pg.wait_for_timeout(200)
-    pg.evaluate("document.getElementById('aOut').value = document.getElementById('aOut').value.replace(/^file:[^#]*/, 'https://a-dsp.github.io/a-dsp/')")
+    pg.evaluate("document.getElementById('aOut').value = document.getElementById('aOut').value.replace(/^file:[^?#]*/, 'https://a-dsp.github.io/a-dsp/')")
     pg.evaluate("window.scrollTo(0,0)")
     pg.locator('#admin').screenshot(path=str(OUT / '10_admin.png'))
     b.close()

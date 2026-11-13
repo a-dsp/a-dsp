@@ -97,8 +97,9 @@ ul{margin:0;padding-left:1.2em;display:flex;flex-direction:column;gap:4px}
     <div class="step">
       <div class="txt">
         <div class="head"><span class="n">1</span><h3>届いたリンクを開く</h3></div>
-        <p>管理者から LINE やメールで届いた<b>「設定入りリンク」</b>を開きます。</p>
+        <p>管理者から LINE やメールで届いた<b>「設定入りリンク」</b>を開きます。QRコードのときは、<b>スマホに最初から入っているカメラ</b>で読み取ってください。</p>
         <p>緑の枠で「宛先を設定しました」と出れば準備完了です。宛先は自動で入るので、自分で入れる必要はありません。</p>
+        <p class="note">赤い枠で「アプリの中のブラウザで開いています」と出たときは、そのままでは保存されません。画面のメニューから<b>「Safariで開く」</b>（Androidは「ブラウザで開く」）を押してください。宛先はそのまま引き継がれます。</p>
       </div>
       <figure><img src="img/01_link.png" alt="設定入りリンクを開いた画面。宛先を設定しました、と表示されている"><figcaption>画面は例です</figcaption></figure>
     </div>
@@ -113,12 +114,12 @@ ul{margin:0;padding-left:1.2em;display:flex;flex-direction:column;gap:4px}
     <div class="step noimg">
       <div class="txt">
         <div class="head"><span class="n">3</span><h3>ホーム画面に置いておく</h3></div>
-        <p>次からすぐ開けるように、スマホのホーム画面にアイコンを作っておきます。</p>
+        <p>次からすぐ開けるように、スマホのホーム画面にアイコンを作っておきます。<b>手順1で宛先が入った画面のまま</b>追加してください（宛先がアイコンに引き継がれます）。</p>
         <div class="os">
           <div><b>iPhone（Safari）</b>画面下の共有ボタン（四角から矢印が出たマーク）→「ホーム画面に追加」</div>
           <div><b>Android（Chrome）</b>右上の「︙」→「ホーム画面に追加」</div>
         </div>
-        <p class="note">次からは、ホーム画面のアイコンを押すだけで使えます。リンクをもう一度開く必要はありません。</p>
+        <p class="note">次からは、ホーム画面のアイコンを押すだけで使えます。リンクをもう一度開く必要はありません。宛先が変わって新しいリンクが届いたときは、<b>古いアイコンを消して</b>、新しいリンクを開いてから作り直してください。</p>
       </div>
     </div>
   </section>
@@ -134,7 +135,7 @@ ul{margin:0;padding-left:1.2em;display:flex;flex-direction:column;gap:4px}
         <div class="head"><span class="n">1</span><h3>出動の情報を入れる</h3></div>
         <ul>
           <li><b>方面</b>：東部か南部を押す</li>
-          <li><b>出動通知を受けた日時</b>：ページを開いた時刻が自動で入ります。違っていたら直してください</li>
+          <li><b>アラートメールを受信した日時</b>：アラートメール（出動通知）が<b>届いた時刻</b>です。今の時刻ではありません。ふつうは <span class="k">5:00</span> <span class="k">11:00</span> <span class="k">17:00</span> <span class="k">23:00</span> のどれかなので、ボタンを押すだけで入ります。数分遅れて届いたときは、その時刻を入れてください</li>
           <li><b>担当者</b>：名前と携帯番号。1人のときは②を空のままにすると、メールから消えます</li>
         </ul>
         <p class="note">ここは経過報告・終了報告でも同じものを使います。一度入れれば残ったままです。</p>
@@ -159,10 +160,14 @@ ul{margin:0;padding-left:1.2em;display:flex;flex-direction:column;gap:4px}
     <div class="step">
       <div class="txt">
         <div class="head"><span class="n">3</span><h3>時間を入れる</h3></div>
-        <p>時刻の欄を押すと時刻を選べます。<span class="k">今</span> ボタンを押すと、今の時刻がそのまま入ります。</p>
-        <p><span class="pill s">出動</span> のときは「従事対応時間域」の2つだけです。</p>
+        <p>時間域は<b>3時間ごと</b>（0時・3時・6時…21時から）のボタンから1つ選びます。受信時刻を入れると、そのあと最初の3時間が自動で選ばれます。</p>
+        <ul>
+          <li><span class="pill s">出動</span> 従事対応時間域：予報された3時間</li>
+          <li><span class="pill p">経過</span> 実施済時間域：パトロールした3時間。継続時間域（次の3時間）は自動で入ります</li>
+          <li><span class="pill e">終了</span> 実施済時間域：最後にパトロールした3時間</li>
+        </ul>
       </div>
-      <figure><img src="img/04_start.png" alt="従事対応時間域の入力欄と今ボタン"></figure>
+      <figure><img src="img/04_start.png" alt="従事対応時間域の3時間ごとのボタン"></figure>
     </div>
 
     <div class="step tall">
@@ -174,7 +179,7 @@ ul{margin:0;padding-left:1.2em;display:flex;flex-direction:column;gap:4px}
           <li><b>異常あり</b>：所在地・異常内容・対応内容を入れます。CWOに連絡したときは、担当者の名前も入れます。<b>2か所以上</b>あったときは「異常をもう1件追加」で<b>3件まで</b>入れられます</li>
           <li><b>その他</b>：起きたことを自分で書きます</li>
         </ul>
-        <p><span class="pill p">経過</span> のときは、この下に「継続時間域」も出てきます。担当者が同じなら、チェックを付けたままでOKです。</p>
+        <p><span class="pill p">経過</span> のときは、この下に「継続時間域」も出てきます。担当者が同じなら、チェックを付けたままでOKです。途中で抜けた人がいるときは、チェックを外して継続の担当者を入れ直してください。</p>
       </div>
       <figure><img src="img/06_prog.png" alt="終了報告の入力欄。結果報告で異常ありを選び、所在地・異常内容・対応内容を入れた例"></figure>
     </div>

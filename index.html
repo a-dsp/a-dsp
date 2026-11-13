@@ -62,6 +62,7 @@ input:focus-visible,textarea:focus-visible,button:focus-visible,a:focus-visible,
 .btn-add{font:inherit;font-size:15px;font-weight:700;min-height:48px;border-radius:12px;border:2px dashed var(--line);background:none;color:var(--accent);cursor:pointer}
 
 .banner{padding:12px 14px;border-radius:12px;border:2px solid var(--end);color:var(--end);font-weight:700;background:var(--surface)}
+.banner.bad{border-color:var(--miss);color:var(--miss)}
 
 /* 宛先 */
 .rcpt{display:flex;flex-wrap:wrap;gap:6px}
@@ -84,6 +85,11 @@ input:focus-visible,textarea:focus-visible,button:focus-visible,a:focus-visible,
 .types label[data-t="prog"].on{background:var(--prog);border-color:var(--prog)}
 .types label[data-t="end"].on{background:var(--end);border-color:var(--end)}
 .result label{justify-content:flex-start;text-align:left;padding:10px 14px;font-weight:400;font-size:16px}
+.seg.c4{grid-template-columns:repeat(4,1fr)}
+.blocks label{flex-direction:column;gap:0;min-height:56px;font-size:17px;line-height:1.15;padding:4px 2px}
+.blocks small{font-size:12px;font-weight:400;opacity:.85}
+.quick{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:8px}
+.quick .btn-s{padding:0 4px}
 
 /* time rows */
 .trow{display:grid;grid-template-columns:auto 1fr auto;gap:8px;align-items:center}
@@ -137,6 +143,7 @@ mark.miss{background:none;color:var(--miss);font-weight:700}
   </header>
 
   <div class="banner" id="banner" hidden></div>
+  <div class="banner bad" id="inapp" hidden></div>
 
   <!-- 管理者用（URLの最後に #admin を付けたときだけ表示） -->
   <section class="admin" id="admin" hidden>
@@ -185,11 +192,18 @@ mark.miss{background:none;color:var(--miss);font-weight:700}
       </div>
     </div>
     <div>
-      <span class="lbl">出動通知を受けた日時</span>
+      <span class="lbl">アラートメール（出動通知）を受信した日時</span>
       <div class="grid2 dt">
         <input type="date" id="rDate" name="rDate" aria-label="受信した日">
         <input type="time" id="rTime" name="rTime" aria-label="受信した時刻">
       </div>
+      <div class="quick">
+        <button type="button" class="btn-s" data-set="rTime" data-v="05:00">5:00</button>
+        <button type="button" class="btn-s" data-set="rTime" data-v="11:00">11:00</button>
+        <button type="button" class="btn-s" data-set="rTime" data-v="17:00">17:00</button>
+        <button type="button" class="btn-s" data-set="rTime" data-v="23:00">23:00</button>
+      </div>
+      <p class="hint" style="margin-top:6px">アラートメールが届いた時刻です（今の時刻ではありません）。ふつうは上の4つのどれか。数分遅れて届いたときは、その時刻を入れてください。</p>
     </div>
     <div class="staff">
       <span class="t">担当者</span>
@@ -217,15 +231,14 @@ mark.miss{background:none;color:var(--miss);font-weight:700}
     <h2><span class="num">3</span>内容</h2>
 
     <div data-for="start">
-      <span class="lbl">従事対応時間域</span>
-      <div class="trow"><span>から</span><input type="time" id="planFrom" name="planFrom"><button type="button" class="btn-s" data-now="planFrom">今</button></div>
-      <div class="trow"><span>まで</span><input type="time" id="planTo" name="planTo"><button type="button" class="btn-s" data-now="planTo">今</button></div>
+      <span class="lbl">従事対応時間域（予報された3時間）</span>
+      <div class="seg c4 blocks" data-block="planB" role="radiogroup" aria-label="従事対応時間域"></div>
     </div>
 
     <div data-for="prog end">
-      <span class="lbl">実施済時間域</span>
-      <div class="trow"><span>から</span><input type="time" id="doneFrom" name="doneFrom"><button type="button" class="btn-s" data-now="doneFrom">今</button></div>
-      <div class="trow"><span>まで</span><input type="time" id="doneTo" name="doneTo"><button type="button" class="btn-s" data-now="doneTo">今</button></div>
+      <span class="lbl" data-for="prog">実施済時間域（パトロールした3時間）</span>
+      <span class="lbl" data-for="end">実施済時間域（最後にパトロールした3時間）</span>
+      <div class="seg c4 blocks" data-block="doneB" role="radiogroup" aria-label="実施済時間域"></div>
     </div>
 
     <div data-for="prog end">
@@ -268,9 +281,9 @@ mark.miss{background:none;color:var(--miss);font-weight:700}
     </div>
 
     <div data-for="prog">
-      <span class="lbl">継続時間域</span>
-      <div class="trow"><span>から</span><input type="time" id="contFrom" name="contFrom"><button type="button" class="btn-s" data-now="contFrom">今</button></div>
-      <div class="trow"><span>まで</span><input type="time" id="contTo" name="contTo"><button type="button" class="btn-s" data-now="contTo">今</button></div>
+      <span class="lbl">継続時間域（次の3時間）</span>
+      <div class="seg c4 blocks" data-block="contB" role="radiogroup" aria-label="継続時間域"></div>
+      <p class="hint" style="margin-top:6px">実施済時間域を選ぶと、次の3時間が自動で入ります。</p>
     </div>
     <div data-for="prog" class="staff">
       <label class="check"><input type="checkbox" id="contSame" name="contSame">継続の担当者も上と同じ</label>
@@ -316,7 +329,7 @@ mark.miss{background:none;color:var(--miss);font-weight:700}
   var KEY = 'rainReport.form.v1';
   var CFG = 'rainReport.cfg.v1';
   var FIELDS = ['me','area','rDate','rTime','n1','p1','n2','p2','type',
-    'planFrom','planTo','doneFrom','doneTo','result','abnN','place1','what1','cwo1','act1','place2','what2','cwo2','act2','place3','what3','cwo3','act3','other','contSame','cn1','cp1','cn2','cp2','contFrom','contTo'];
+    'planB','doneB','result','abnN','place1','what1','cwo1','act1','place2','what2','cwo2','act2','place3','what3','cwo3','act3','other','contSame','cn1','cp1','cn2','cp2','contB'];
   var WD = ['日','月','火','水','木','金','土'];
   var TITLE = { start:'業務開始報告', prog:'業務実施状況（継続・経過報告）', end:'業務終了報告' };
   var KUBUN = { start:'業務開始報告', prog:'継続・経過報告', end:'業務終了報告' };
@@ -338,6 +351,9 @@ mark.miss{background:none;color:var(--miss);font-weight:700}
   }
   function parseList(t){ return (t || '').split(/[\s,、;；]+/).filter(function(x){ return x; }); }
 
+  // 設定は #c=... に入れたまま残す。アプリ内ブラウザから「Safariで開く」を押したときや、
+  // iPhoneのホーム画面アイコン（Safariとは保存場所が別）でも、URLごと設定が引き継がれるようにするため。
+  // # 以降はサーバーには送られない。t は作成時刻で、古いリンクで新しい設定を上書きしないために使う。
   var cfg = lsGet(CFG) || { to: [], cc: [], company: DEFAULT_COMPANY };
   if(!Array.isArray(cfg.cc)) cfg.cc = [];
   var hash = location.hash || '';
@@ -345,18 +361,43 @@ mark.miss{background:none;color:var(--miss);font-weight:700}
     try {
       var c = JSON.parse(b64d(hash.slice(3)));
       if(c && Array.isArray(c.to)){
-        cfg = { to: c.to, cc: Array.isArray(c.cc) ? c.cc : [], company: c.company || DEFAULT_COMPANY };
-        var ok = lsSet(CFG, cfg);
-        showBanner(ok ? '宛先を設定しました（TO ' + cfg.to.length + '件' + (cfg.cc.length ? '・CC ' + cfg.cc.length + '件' : '') + '）。次からはこのページを開くだけで使えます。'
-                      : '宛先を読み込みました。ただしこの端末では保存できないため、次回も同じリンクから開いてください。');
+        var nc = { to: c.to, cc: Array.isArray(c.cc) ? c.cc : [], company: c.company || DEFAULT_COMPANY, t: +c.t || 0 };
+        var same = JSON.stringify(nc) === JSON.stringify(cfg);
+        if(!same && nc.t >= (+cfg.t || 0)){
+          cfg = nc;
+          var ok = lsSet(CFG, cfg);
+          showBanner(ok ? '宛先を設定しました（TO ' + cfg.to.length + '件' + (cfg.cc.length ? '・CC ' + cfg.cc.length + '件' : '') + '）。次からはこのページを開くだけで使えます。'
+                        : '宛先を読み込みました。ただしこの端末では保存できないため、次回も同じリンクから開いてください。');
+        } else if(!same){ // 古いリンク：無視して、URLも今の設定に置き換える
+          try { history.replaceState(null, '', location.pathname + location.search + '#c=' + b64e(JSON.stringify(cfg))); } catch(e){}
+        }
       }
     } catch(e){ showBanner('設定リンクが読み取れませんでした。管理者にもう一度送ってもらってください。', true); }
-    try { history.replaceState(null, '', location.pathname + location.search); } catch(e){}
   }
+  function cfgLink(){ return location.origin + location.pathname + '?openExternalBrowser=1#c=' + b64e(JSON.stringify(cfg)); }
+  function keepCfgInUrl(){ // 宛先があるのにURLに設定がないときは付け直す（このあと「ホーム画面に追加」しても引き継がれる）
+    if(cfg.to.length && !location.hash){
+      try { history.replaceState(null, '', location.pathname + location.search + '#c=' + b64e(JSON.stringify(cfg))); } catch(e){}
+    }
+  }
+  keepCfgInUrl();
   function showBanner(msg, bad){
     var b = $('banner'); b.textContent = msg; b.hidden = false;
     if(bad){ b.style.borderColor = 'var(--miss)'; b.style.color = 'var(--miss)'; }
   }
+
+  // アプリ内ブラウザ（LINE・Gmail・Instagram など）で開いたときの案内
+  (function(){
+    var ua = navigator.userAgent || '';
+    var ios = /iPhone|iPad|iPod/.test(ua);
+    var inApp = /\bLine\/|FBAN|FBAV|Instagram|GSA\/|; wv\)/.test(ua) || (ios && !/Safari\//.test(ua) && !navigator.standalone);
+    if(!inApp) return;
+    var w = $('inapp');
+    w.textContent = ios
+      ? 'アプリの中のブラウザで開いています。このままだと宛先や入力が残りません。画面のメニュー（… や 共有ボタン）から「Safariで開く」を押してください。宛先はそのまま引き継がれます。'
+      : 'アプリの中のブラウザで開いています。このままだと宛先や入力が残りません。画面のメニュー（︙）から「ブラウザで開く」を押してください。宛先はそのまま引き継がれます。';
+    w.hidden = false;
+  })();
 
   // ---- admin ----
   function adminCheck(){
@@ -370,10 +411,9 @@ mark.miss{background:none;color:var(--miss);font-weight:700}
     var to = parseList($('aTo').value);
     var company = $('aCompany').value.trim() || DEFAULT_COMPANY;
     var cc = parseList($('aCc').value);
-    cfg = { to: to, cc: cc, company: company };
+    cfg = { to: to, cc: cc, company: company, t: Date.now() };
     lsSet(CFG, cfg);
-    var base = location.href.split('#')[0];
-    $('aOut').value = base + '#c=' + b64e(JSON.stringify(cfg));
+    $('aOut').value = cfgLink();
     $('aResult').hidden = false;
     render();
   });
@@ -402,6 +442,24 @@ mark.miss{background:none;color:var(--miss);font-weight:700}
     return { date: d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()), time: pad(d.getHours())+':'+pad(d.getMinutes()) };
   }
 
+  // ---- 3時間ブロック（0,3,...,21時開始） ----
+  function hhmm(h){ return pad(h) + ':00'; }
+  function blk(h){ return (h === '' || h == null) ? '●～●' : hhmm(+h) + '～' + hhmm(+h + 3); }
+  function nextBlk(h){ return (h === '' || h == null) ? '' : String((+h + 3) % 24); }
+  function blkAfter(t){ // 受信時刻の後で最初に始まるブロック
+    if(!t) return '';
+    var q = t.split(':'), m = (+q[0]) * 60 + (+q[1]);
+    return String((Math.ceil(m / 180) * 3) % 24);
+  }
+  document.querySelectorAll('[data-block]').forEach(function(box){
+    var name = box.getAttribute('data-block');
+    for(var h = 0; h < 24; h += 3){
+      var l = document.createElement('label');
+      l.innerHTML = '<input type="radio" name="' + name + '" value="' + h + '">' + hhmm(h) + '<small>～' + hhmm(h + 3) + '</small>';
+      box.appendChild(l);
+    }
+  });
+
   // ---- init form ----
   var s = lsGet(KEY) || {};
   FIELDS.forEach(function(k){ if(s[k] !== undefined) set(k, s[k]); });
@@ -412,22 +470,19 @@ mark.miss{background:none;color:var(--miss);font-weight:700}
   if(!get('type')) set('type','start');
   if(!get('result')) set('result','ok');
   if(s.contSame === undefined) set('contSame', true);
-  if(!get('rDate') || !get('rTime')){ var n = nowParts(); set('rDate', n.date); set('rTime', n.time); }
+  if(!get('rDate')) set('rDate', nowParts().date);
   fillDefaults();
 
+  // 空の時間域だけ候補を入れる（受信時刻の後の最初のブロック → 実施済 → 継続）
   function fillDefaults(){
-    var t = get('type'), r = get('rTime'), n = nowParts().time;
-    if(t === 'start' && !get('planFrom')) set('planFrom', r);
-    if(t !== 'start'){
-      if(!get('doneFrom')) set('doneFrom', r);
-      if(!get('doneTo')) set('doneTo', n);
-    }
-    if(t === 'prog' && !get('contFrom')) set('contFrom', get('doneTo') || n);
+    var t = get('type');
+    if(!get('planB')) set('planB', blkAfter(get('rTime')));
+    if(t !== 'start' && !get('doneB')) set('doneB', get('planB'));
+    if(t === 'prog' && !get('contB')) set('contB', nextBlk(get('doneB')));
   }
 
   // ---- build mail ----
   function ph(v){ return v ? v : '●'; }
-  function range(a,b){ return ph(a) + '～' + ph(b); }
   function staffLines(n1,p1,n2,p2){
     var L = ['担当者氏名および連絡先：' + ph(n1) + '（' + ph(p1) + '）'];
     if(n2 || p2) L.push('担当者氏名および連絡先：' + ph(n2) + '（' + ph(p2) + '）');
@@ -471,15 +526,15 @@ mark.miss{background:none;color:var(--miss);font-weight:700}
       '首記の件、' + recv() + 'に出動通知の受信に従って、次の内容で報告致します。',
       '報告区分：' + KUBUN[t]];
     if(t === 'start'){
-      L.push('従事対応時間域：' + range(get('planFrom'), get('planTo')));
+      L.push('従事対応時間域：' + blk(get('planB')));
       L = L.concat(staff);
     } else {
       if(t === 'prog') L.push('');
-      L.push('実施済時間域：' + range(get('doneFrom'), get('doneTo')));
+      L.push('実施済時間域：' + blk(get('doneB')));
       L = L.concat(staff);
       L.push('結果報告：', resultText());
       if(t === 'prog'){
-        L.push('', '継続時間域：' + range(get('contFrom'), get('contTo')));
+        L.push('', '継続時間域：' + blk(get('contB')));
         L = L.concat(get('contSame') ? staff : staffLines(get('cn1'),get('cp1'),get('cn2'),get('cp2')));
       }
     }
@@ -540,11 +595,13 @@ mark.miss{background:none;color:var(--miss);font-weight:700}
   document.addEventListener('input', function(e){ if(!$('admin').contains(e.target)) render(); });
   document.addEventListener('change', function(e){
     if($('admin').contains(e.target)) return;
-    if(e.target.name === 'type') fillDefaults();
+    var nm = e.target.name;
+    if(nm === 'doneB') set('contB', nextBlk(get('doneB')));
+    if(nm === 'type' || nm === 'rTime' || nm === 'planB') fillDefaults();
     render();
   });
-  document.querySelectorAll('[data-now]').forEach(function(b){
-    b.addEventListener('click', function(){ set(b.getAttribute('data-now'), nowParts().time); render(); });
+  document.querySelectorAll('[data-set]').forEach(function(b){
+    b.addEventListener('click', function(){ set(b.getAttribute('data-set'), b.getAttribute('data-v')); fillDefaults(); render(); });
   });
 
   // abnormal items
@@ -572,9 +629,8 @@ mark.miss{background:none;color:var(--miss);font-weight:700}
       return;
     }
     clearTimeout(armTimer); rb.classList.remove('arm'); rb.textContent = rbText;
-    var n = nowParts();
-    set('rDate', n.date); set('rTime', n.time);
-    ['planFrom','planTo','doneFrom','doneTo','contFrom','contTo','other'].forEach(function(k){ set(k,''); });
+    set('rDate', nowParts().date);
+    ['rTime','planB','doneB','contB','other'].forEach(function(k){ set(k,''); });
     [1,2,3].forEach(function(i){ AK.forEach(function(k){ set(k+i,''); }); });
     set('abnN','1');
     set('result','ok'); set('type','start');
