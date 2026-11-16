@@ -256,7 +256,7 @@ mark.miss{background:none;color:var(--miss);font-weight:700}
     <div data-for="prog end">
       <span class="lbl">結果報告</span>
       <div class="seg result">
-        <label><input type="radio" name="result" value="ok" id="r-ok">異常なし</label>
+        <label data-for="end"><input type="radio" name="result" value="ok" id="r-ok">異常なし</label>
         <label><input type="radio" name="result" value="ng" id="r-ng">異常あり（場所・内容・対応を入れる）</label>
         <label><input type="radio" name="result" value="other" id="r-other">その他（自分で書く）</label>
       </div>
@@ -522,6 +522,7 @@ mark.miss{background:none;color:var(--miss);font-weight:700}
     if(!get('planB')) set('planB', blkAfter(get('rTime')));
     if(t !== 'start' && !get('doneB')) set('doneB', get('planB'));
     if(t === 'prog' && get('contOn') && !get('contB')) set('contB', nextBlk(get('doneB')));
+    if(t === 'prog' && get('result') === 'ok') set('result', 'ng'); // 経過は異常なしを使わない（異常なしは終了報告で）
   }
 
   // ---- build mail ----
