@@ -268,21 +268,21 @@ mark.miss{background:none;color:var(--miss);font-weight:700}
         <div><label for="place1">所在地</label><input type="text" id="place1" name="place1" placeholder="例）生野区中川4丁目 〇〇付近"></div>
         <div><label for="what1">異常内容</label><input type="text" id="what1" name="what1" placeholder="例）マンホールより水柱"></div>
         <div><label for="cwo1">連絡したCWO担当者（連絡したときだけ）</label><input type="text" id="cwo1" name="cwo1" placeholder="例）佐藤"></div>
-        <div><label for="act1">対応内容（連絡以外にしたこと）</label><textarea id="act1" name="act1" placeholder="例）約10ｍ後方より自主警備実施（CWOと交代まで）"></textarea></div>
+        <div><label for="act1"><span data-for="end">対応内容（連絡以外にしたこと）</span><span data-for="prog">対応内容・このあとの動き</span></label><textarea id="act1" name="act1" class="act" placeholder="例）約10ｍ後方より自主警備実施（CWOと交代まで）"></textarea><p class="hint" data-for="prog" style="margin-top:4px">したこと（連絡以外）と、報告のあと待機するか巡回に戻るかを書いてください。</p></div>
       </div>
       <div class="abn" id="abn2" hidden>
         <div class="abnhead"><b>異常 2件目</b><button type="button" class="btn-x" data-del="2">この件を消す</button></div>
         <div><label for="place2">所在地</label><input type="text" id="place2" name="place2" placeholder="例）生野区中川4丁目 〇〇付近"></div>
         <div><label for="what2">異常内容</label><input type="text" id="what2" name="what2" placeholder="例）マンホールより水柱"></div>
         <div><label for="cwo2">連絡したCWO担当者（連絡したときだけ）</label><input type="text" id="cwo2" name="cwo2" placeholder="例）佐藤"></div>
-        <div><label for="act2">対応内容（連絡以外にしたこと）</label><textarea id="act2" name="act2" placeholder="例）約10ｍ後方より自主警備実施（CWOと交代まで）"></textarea></div>
+        <div><label for="act2"><span data-for="end">対応内容（連絡以外にしたこと）</span><span data-for="prog">対応内容・このあとの動き</span></label><textarea id="act2" name="act2" class="act" placeholder="例）約10ｍ後方より自主警備実施（CWOと交代まで）"></textarea><p class="hint" data-for="prog" style="margin-top:4px">したこと（連絡以外）と、報告のあと待機するか巡回に戻るかを書いてください。</p></div>
       </div>
       <div class="abn" id="abn3" hidden>
         <div class="abnhead"><b>異常 3件目</b><button type="button" class="btn-x" data-del="3">この件を消す</button></div>
         <div><label for="place3">所在地</label><input type="text" id="place3" name="place3" placeholder="例）生野区中川4丁目 〇〇付近"></div>
         <div><label for="what3">異常内容</label><input type="text" id="what3" name="what3" placeholder="例）マンホールより水柱"></div>
         <div><label for="cwo3">連絡したCWO担当者（連絡したときだけ）</label><input type="text" id="cwo3" name="cwo3" placeholder="例）佐藤"></div>
-        <div><label for="act3">対応内容（連絡以外にしたこと）</label><textarea id="act3" name="act3" placeholder="例）約10ｍ後方より自主警備実施（CWOと交代まで）"></textarea></div>
+        <div><label for="act3"><span data-for="end">対応内容（連絡以外にしたこと）</span><span data-for="prog">対応内容・このあとの動き</span></label><textarea id="act3" name="act3" class="act" placeholder="例）約10ｍ後方より自主警備実施（CWOと交代まで）"></textarea><p class="hint" data-for="prog" style="margin-top:4px">したこと（連絡以外）と、報告のあと待機するか巡回に戻るかを書いてください。</p></div>
       </div>
       <button type="button" class="btn-add" id="addAbn">＋ 異常をもう1件追加（3件まで）</button>
       <p class="hint">写真は、メールの画面が開いたあとに添付してください。</p>
@@ -602,6 +602,10 @@ mark.miss{background:none;color:var(--miss);font-weight:700}
       el.hidden = !show;
     });
     $('contStaff').hidden = !!get('contSame');
+    document.querySelectorAll('textarea.act').forEach(function(a){ // 経過は「このあとの動き」も書く
+      a.placeholder = t === 'prog' ? '例）約10ｍ後方より自主警備実施（CWOと交代まで）。報告後は巡回に戻ります。'
+                                   : '例）約10ｍ後方より自主警備実施（CWOと交代まで）';
+    });
     if(!get('contOn')) $('contArea').hidden = true;
     document.querySelectorAll('[data-set]').forEach(function(b){ // 今の値と同じボタンに色を付ける
       var on = get(b.getAttribute('data-set')) === b.getAttribute('data-v');
