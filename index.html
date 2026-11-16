@@ -499,6 +499,14 @@ mark.miss{background:none;color:var(--miss);font-weight:700}
   fillDefaults();
 
   // 空の時間域だけ候補を入れる（受信時刻の後の最初のブロック → 実施済 → 継続）
+  // 受信時刻を入れた・入れ直したとき：時間域をすべて受信時刻から選び直す
+  // （通知は定時。5時の通知なら 06:00～09:00 の予報）
+  function recvChanged(){
+    if(!get('rTime')) return;
+    set('planB', blkAfter(get('rTime')));
+    set('doneB', ''); set('contB', '');
+    fillDefaults();
+  }
   function fillDefaults(){
     var t = get('type');
     if(!get('planB')) set('planB', blkAfter(get('rTime')));
@@ -622,11 +630,17 @@ mark.miss{background:none;color:var(--miss);font-weight:700}
     if($('admin').contains(e.target)) return;
     var nm = e.target.name;
     if(nm === 'doneB') set('contB', nextBlk(get('doneB')));
-    if(nm === 'type' || nm === 'rTime' || nm === 'planB') fillDefaults();
+    if(nm === 'rTime') recvChanged();
+    if(nm === 'type' || nm === 'planB') fillDefaults();
     render();
   });
   document.querySelectorAll('[data-set]').forEach(function(b){
-    b.addEventListener('click', function(){ set(b.getAttribute('data-set'), b.getAttribute('data-v')); fillDefaults(); render(); });
+    b.addEventListener('click', function(){
+      var k = b.getAttribute('data-set');
+      set(k, b.getAttribute('data-v'));
+      if(k === 'rTime') recvChanged(); else fillDefaults();
+      render();
+    });
   });
 
   // abnormal items
