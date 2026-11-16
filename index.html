@@ -120,7 +120,7 @@ mark.miss{background:none;color:var(--miss);font-weight:700}
 .send{display:flex;flex-direction:column;gap:10px}
 .big{display:flex;align-items:center;justify-content:center;min-height:64px;border-radius:14px;font:inherit;font-size:20px;font-weight:700;
   text-decoration:none;background:var(--cur);color:var(--on);border:0;cursor:pointer;text-align:center;padding:0 12px}
-.big.sub{background:var(--surface);color:var(--cur);border:2px solid var(--cur);font-size:17px;min-height:54px}
+#gmailRow a{color:var(--accent);font-weight:700}
 .copies{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
 .copies.three{grid-template-columns:repeat(3,1fr)}
 .copies button,.btn-m{font:inherit;font-size:15px;font-weight:700;min-height:52px;border-radius:12px;border:1px solid var(--line);background:var(--field);color:var(--ink);cursor:pointer;padding:4px 10px}
@@ -319,7 +319,6 @@ mark.miss{background:none;color:var(--miss);font-weight:700}
     </div>
     <div class="send">
       <a class="big" id="mailtoBtn" href="#">メールを作る</a>
-      <a class="big sub" id="gmailBtn" href="#" target="_blank" rel="noopener">Gmailで作る</a>
       <p class="hint">メールの画面が開いたら、中身を確かめて「送信」を押せば完了です。開かないときは下のボタンでコピーして、自分のメールに貼り付けてください。</p>
       <div class="copies">
         <button type="button" id="cpTo">宛先をコピー</button>
@@ -331,6 +330,8 @@ mark.miss{background:none;color:var(--miss);font-weight:700}
         <label for="manual" id="manualLbl">長押しして「コピー」を選んでください</label>
         <textarea id="manual" readonly></textarea>
       </div>
+      <!-- スマホではGmailのWeb作成画面が本文を受け取らないことがある（iPhoneで本文が消えた）ため、PCでだけ出す -->
+      <p class="hint" id="gmailRow">PCでメールの画面が開かないとき：<a id="gmailBtn" href="#" target="_blank" rel="noopener">ブラウザのGmailで作る</a></p>
     </div>
   </section>
 </div>
@@ -411,6 +412,8 @@ mark.miss{background:none;color:var(--miss);font-weight:700}
     var b = $('banner'); b.textContent = msg; b.hidden = false;
     if(bad){ b.style.borderColor = 'var(--miss)'; b.style.color = 'var(--miss)'; }
   }
+
+  $('gmailRow').hidden = /iPhone|iPad|iPod|Android/.test(navigator.userAgent || '');
 
   // アプリ内ブラウザ（LINE・Gmail・Instagram など）で開いたときの案内
   (function(){

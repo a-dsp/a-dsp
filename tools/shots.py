@@ -23,6 +23,8 @@ if (FONT / '400.css').exists():
         css += (FONT / f'{w}.css').read_text().replace('./files/', (FONT / 'files').as_uri() + '/')
 
 cfg = {"to": ["report1@example.jp", "report2@example.jp"], "cc": ["copy1@example.jp"], "company": "ミザック株式会社"}
+# iPhoneのSafariとして撮る（スマホ向けの表示にするため）
+IPHONE = 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.5 Mobile/15E148 Safari/604.1'
 def b64e(s): return base64.urlsafe_b64encode(s.encode()).decode().rstrip('=')
 base_form = {"me": "山田", "area": "東部方面", "rDate": "2026-11-05", "rTime": "23:00", "n1": "山田 太郎", "p1": "090-0000-0000",
   "n2": "佐藤 次郎", "p2": "090-1111-1111", "type": "start", "planB": "0", "doneB": "0",
@@ -37,7 +39,7 @@ def shot(page, sels, name, pad=6):
 with sync_playwright() as p:
     b = p.chromium.launch(args=['--lang=ja-JP'])
     def newpage(form=None, cfg_store=None, url=PAGE):
-        ctx = b.new_context(viewport={'width': 390, 'height': 900}, device_scale_factor=2, color_scheme='light', locale='ja-JP')
+        ctx = b.new_context(viewport={'width': 390, 'height': 900}, device_scale_factor=2, color_scheme='light', locale='ja-JP', user_agent=IPHONE)
         if css: ctx.route(re.compile(r'https://fonts\.(googleapis|gstatic)\.com/.*'), lambda r: r.abort())
         init = "localStorage.clear();"
         if cfg_store: init += f"localStorage.setItem('rainReport.cfg.v1', {json.dumps(json.dumps(cfg_store))});"
