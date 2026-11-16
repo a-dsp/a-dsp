@@ -292,18 +292,24 @@ mark.miss{background:none;color:var(--miss);font-weight:700}
       <textarea id="other" name="other" placeholder="起きたことをそのまま書いてください"></textarea>
     </div>
 
-    <div data-for="prog">
-      <span class="lbl">継続時間域（次の3時間）</span>
-      <div class="seg c4 blocks" data-block="contB" role="radiogroup" aria-label="継続時間域"></div>
-      <p class="hint" style="margin-top:6px">実施済時間域を選ぶと、次の3時間が自動で入ります。</p>
-    </div>
     <div data-for="prog" class="staff">
-      <label class="check"><input type="checkbox" id="contSame" name="contSame">継続の担当者も上と同じ</label>
-      <div class="grid2 ppl" id="contStaff">
-        <input type="text" id="cn1" name="cn1" placeholder="名前①" aria-label="継続担当者①の名前">
-        <input type="tel" id="cp1" name="cp1" placeholder="携帯番号①" aria-label="継続担当者①の携帯番号">
-        <input type="text" id="cn2" name="cn2" placeholder="名前②" aria-label="継続担当者②の名前">
-        <input type="tel" id="cp2" name="cp2" placeholder="携帯番号②" aria-label="継続担当者②の携帯番号">
+      <label class="check"><input type="checkbox" id="contOn" name="contOn">次の3時間も続けて出動する（継続あり）</label>
+      <p class="hint">続けて出動するときだけチェックします。チェックすると、継続時間域と継続の担当者がメールに入ります。</p>
+    </div>
+    <div data-for="prog" class="stack" id="contArea">
+      <div>
+        <span class="lbl">継続時間域（次の3時間）</span>
+        <div class="seg c4 blocks" data-block="contB" role="radiogroup" aria-label="継続時間域"></div>
+        <p class="hint" style="margin-top:6px">実施済時間域の次の3時間が自動で入ります。</p>
+      </div>
+      <div class="staff">
+        <label class="check"><input type="checkbox" id="contSame" name="contSame">継続の担当者も上と同じ</label>
+        <div class="grid2 ppl" id="contStaff">
+          <input type="text" id="cn1" name="cn1" placeholder="名前①" aria-label="継続担当者①の名前">
+          <input type="tel" id="cp1" name="cp1" placeholder="携帯番号①" aria-label="継続担当者①の携帯番号">
+          <input type="text" id="cn2" name="cn2" placeholder="名前②" aria-label="継続担当者②の名前">
+          <input type="tel" id="cp2" name="cp2" placeholder="携帯番号②" aria-label="継続担当者②の携帯番号">
+        </div>
       </div>
     </div>
   </section>
@@ -342,7 +348,7 @@ mark.miss{background:none;color:var(--miss);font-weight:700}
   var KEY = 'rainReport.form.v1';
   var CFG = 'rainReport.cfg.v1';
   var FIELDS = ['me','area','rDate','rTime','n1','p1','n2','p2','type',
-    'planB','doneB','result','abnN','place1','what1','cwo1','act1','place2','what2','cwo2','act2','place3','what3','cwo3','act3','other','contSame','cn1','cp1','cn2','cp2','contB'];
+    'planB','doneB','result','abnN','place1','what1','cwo1','act1','place2','what2','cwo2','act2','place3','what3','cwo3','act3','other','contOn','contSame','cn1','cp1','cn2','cp2','contB'];
   var WD = ['日','月','火','水','木','金','土'];
   var TITLE = { start:'業務開始報告', prog:'業務実施状況（継続・経過報告）', end:'業務終了報告' };
   var KUBUN = { start:'業務開始報告', prog:'継続・経過報告', end:'業務終了報告' };
@@ -515,7 +521,7 @@ mark.miss{background:none;color:var(--miss);font-weight:700}
     var t = get('type');
     if(!get('planB')) set('planB', blkAfter(get('rTime')));
     if(t !== 'start' && !get('doneB')) set('doneB', get('planB'));
-    if(t === 'prog' && !get('contB')) set('contB', nextBlk(get('doneB')));
+    if(t === 'prog' && get('contOn') && !get('contB')) set('contB', nextBlk(get('doneB')));
   }
 
   // ---- build mail ----
@@ -570,7 +576,7 @@ mark.miss{background:none;color:var(--miss);font-weight:700}
       L = L.concat(staff);
       if(get('result') === 'ok') L.push('結果報告：' + resultText());
       else L.push('結果報告：', resultText());
-      if(t === 'prog'){
+      if(t === 'prog' && get('contOn')){ // 続けて出動するときだけ
         L.push('', '継続時間域：' + blk(get('contB')));
         L = L.concat(get('contSame') ? staff : staffLines(get('cn1'),get('cp1'),get('cn2'),get('cp2')));
       }
@@ -595,6 +601,7 @@ mark.miss{background:none;color:var(--miss);font-weight:700}
       el.hidden = !show;
     });
     $('contStaff').hidden = !!get('contSame');
+    if(!get('contOn')) $('contArea').hidden = true;
     document.querySelectorAll('[data-set]').forEach(function(b){ // 今の値と同じボタンに色を付ける
       var on = get(b.getAttribute('data-set')) === b.getAttribute('data-v');
       b.classList.toggle('on', on); b.setAttribute('aria-pressed', on ? 'true' : 'false');
@@ -639,7 +646,7 @@ mark.miss{background:none;color:var(--miss);font-weight:700}
     var nm = e.target.name;
     if(nm === 'doneB') set('contB', nextBlk(get('doneB')));
     if(nm === 'rTime') recvChanged();
-    if(nm === 'type' || nm === 'planB') fillDefaults();
+    if(nm === 'type' || nm === 'planB' || nm === 'contOn') fillDefaults();
     render();
   });
   document.querySelectorAll('[data-set]').forEach(function(b){
@@ -678,6 +685,7 @@ mark.miss{background:none;color:var(--miss);font-weight:700}
     clearTimeout(armTimer); rb.classList.remove('arm'); rb.textContent = rbText;
     set('rDate', nowParts().date);
     ['rTime','planB','doneB','contB','other'].forEach(function(k){ set(k,''); });
+    set('contOn', false);
     [1,2,3].forEach(function(i){ AK.forEach(function(k){ set(k+i,''); }); });
     set('abnN','1');
     set('result','ok'); set('type','start');
