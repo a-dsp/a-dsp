@@ -291,6 +291,11 @@ mark.miss{background:none;color:var(--miss);font-weight:700}
       <label for="other">結果報告の内容</label>
       <textarea id="other" name="other" placeholder="起きたことをそのまま書いてください"></textarea>
     </div>
+    <div data-for="end">
+      <label for="endNote">継続して出動したときの一言（なければ空のまま）</label>
+      <textarea id="endNote" name="endNote" placeholder="例）12:00から継続して巡回し、18:00に終了しました。"></textarea>
+      <p class="hint" style="margin-top:4px">経過報告で「継続あり」にしていたときは、自動で入ります（直せます）。メールには「備考」として入ります。</p>
+    </div>
 
     <div data-for="prog" class="staff">
       <label class="check"><input type="checkbox" id="contOn" name="contOn">次の3時間も続けて出動する（継続あり）</label>
@@ -348,7 +353,7 @@ mark.miss{background:none;color:var(--miss);font-weight:700}
   var KEY = 'rainReport.form.v1';
   var CFG = 'rainReport.cfg.v1';
   var FIELDS = ['me','area','rDate','rTime','n1','p1','n2','p2','type',
-    'planB','doneB','result','abnN','place1','what1','cwo1','act1','place2','what2','cwo2','act2','place3','what3','cwo3','act3','other','contOn','contSame','cn1','cp1','cn2','cp2','contB'];
+    'planB','doneB','result','abnN','place1','what1','cwo1','act1','place2','what2','cwo2','act2','place3','what3','cwo3','act3','other','contOn','contSame','cn1','cp1','cn2','cp2','contB','endNote'];
   var WD = ['日','月','火','水','木','金','土'];
   var TITLE = { start:'業務開始報告', prog:'業務実施状況（継続・経過報告）', end:'業務終了報告' };
   var KUBUN = { start:'業務開始報告', prog:'継続・経過報告', end:'業務終了報告' };
@@ -582,6 +587,7 @@ mark.miss{background:none;color:var(--miss);font-weight:700}
         L = L.concat(get('contSame') ? staff : staffLines(get('cn1'),get('cp1'),get('cn2'),get('cp2')));
       }
     }
+    if(t === 'end' && get('endNote')) L.push('', '備考：' + get('endNote'));
     L.push('', '以上、ご確認のほどよろしくお願いいたします。');
     return { to: cfg.to.slice(), cc: cfg.cc.slice(), sub: sub, body: L.join('\n') };
   }
@@ -651,6 +657,11 @@ mark.miss{background:none;color:var(--miss);font-weight:700}
     var nm = e.target.name;
     if(nm === 'doneB') set('contB', nextBlk(get('doneB')));
     if(nm === 'rTime') recvChanged();
+    // 継続ありの経過報告から終了に切り替えたとき：実施済を継続のブロックに合わせ、備考に一言入れる
+    if(nm === 'type' && get('type') === 'end' && get('contOn') && get('contB')){
+      set('doneB', get('contB'));
+      if(!get('endNote') && get('planB')) set('endNote', hhmm(+get('planB')) + 'から継続して巡回し、' + hhmm(+get('doneB') + 3) + 'に終了しました。');
+    }
     if(nm === 'type' || nm === 'planB' || nm === 'contOn') fillDefaults();
     render();
   });
@@ -690,7 +701,7 @@ mark.miss{background:none;color:var(--miss);font-weight:700}
     clearTimeout(armTimer); rb.classList.remove('arm'); rb.textContent = rbText;
     set('rDate', nowParts().date);
     ['rTime','planB','doneB','contB','other'].forEach(function(k){ set(k,''); });
-    set('contOn', false);
+    set('contOn', false); set('endNote', '');
     [1,2,3].forEach(function(i){ AK.forEach(function(k){ set(k+i,''); }); });
     set('abnN','1');
     set('result','ok'); set('type','start');
