@@ -540,20 +540,19 @@ mark.miss{background:none;color:var(--miss);font-weight:700}
   }
   function resultText(){
     var r = get('result');
+    // 案文は使わず、入力したものだけを並べる（所在地・異常内容は必須、CWO担当者・対応内容は入れたときだけ）
     if(r === 'ng'){
-      var n = abnCount(), L = ['パトロールを実施した結果、下記のとおり下水道施設の異常を確認しました。'];
+      var n = abnCount(), L = [];
       for(var i=1;i<=n;i++){
-        var cwo = get('cwo'+i), act = get('act'+i), how;
-        if(cwo && act) how = 'CWO担当者' + cwo + '様へ連絡。' + act;
-        else if(cwo) how = 'CWO担当者' + cwo + '様へ連絡し、対応を依頼しました。';
-        else how = ph(act);
         if(n > 1) L.push('【' + i + '件目】');
-        L.push('所在地：' + ph(get('place'+i)), '異常内容：' + ph(get('what'+i)), '対応内容：' + how);
+        L.push('所在地：' + ph(get('place'+i)), '異常内容：' + ph(get('what'+i)));
+        if(get('cwo'+i)) L.push('連絡したCWO担当者：' + get('cwo'+i));
+        if(get('act'+i)) L.push('対応内容：' + get('act'+i));
       }
       return L.join('\n');
     }
     if(r === 'other') return ph(get('other'));
-    return 'パトロールを実施した結果、道路及び道路上の下水道施設については、異常が見受けられませんでした。';
+    return '異常なし';
   }
   function build(){
     var t = get('type');
@@ -569,7 +568,8 @@ mark.miss{background:none;color:var(--miss);font-weight:700}
       if(t === 'prog') L.push('');
       L.push('実施済時間域：' + blk(get('doneB')));
       L = L.concat(staff);
-      L.push('結果報告：', resultText());
+      if(get('result') === 'ok') L.push('結果報告：' + resultText());
+      else L.push('結果報告：', resultText());
       if(t === 'prog'){
         L.push('', '継続時間域：' + blk(get('contB')));
         L = L.concat(get('contSame') ? staff : staffLines(get('cn1'),get('cp1'),get('cn2'),get('cp2')));
