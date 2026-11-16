@@ -92,6 +92,7 @@ input:focus-visible,textarea:focus-visible,button:focus-visible,a:focus-visible,
 .blocks small{font-size:12px;font-weight:400;opacity:.85}
 .quick{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:8px}
 .quick .btn-s{padding:0 4px}
+.quick .btn-s.on{background:var(--accent);border-color:var(--accent);color:var(--on)}
 
 /* time rows */
 .trow{display:grid;grid-template-columns:auto 1fr auto;gap:8px;align-items:center}
@@ -591,6 +592,10 @@ mark.miss{background:none;color:var(--miss);font-weight:700}
       el.hidden = !show;
     });
     $('contStaff').hidden = !!get('contSame');
+    document.querySelectorAll('[data-set]').forEach(function(b){ // 今の値と同じボタンに色を付ける
+      var on = get(b.getAttribute('data-set')) === b.getAttribute('data-v');
+      b.classList.toggle('on', on); b.setAttribute('aria-pressed', on ? 'true' : 'false');
+    });
     showAbn();
 
     function chips(box, list, empty){
