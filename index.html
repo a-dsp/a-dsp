@@ -225,7 +225,7 @@ mark.miss{background:none;color:var(--miss);font-weight:700}
         <input type="text" id="n2" name="n2" placeholder="名前②" aria-label="担当者②の名前">
         <input type="tel" id="p2" name="p2" placeholder="携帯番号②" aria-label="担当者②の携帯番号">
       </div>
-      <p class="hint">1人のときは②を空にすれば、メールから消えます。</p>
+      <p class="hint">担当者は必ず2名とも入れてください。</p>
     </div>
     <button type="button" class="reset" id="resetBtn">新しい出動にする（時刻と内容を消す）</button>
   </section>
@@ -521,9 +521,9 @@ mark.miss{background:none;color:var(--miss);font-weight:700}
   // ---- build mail ----
   function ph(v){ return v ? v : '●'; }
   function staffLines(n1,p1,n2,p2){
-    var L = ['担当者氏名および連絡先：' + ph(n1) + '（' + ph(p1) + '）'];
-    if(n2 || p2) L.push('担当者氏名および連絡先：' + ph(n2) + '（' + ph(p2) + '）');
-    return L;
+    // 担当者は必ず2名。空なら ● を出して未入力として数える
+    return ['担当者氏名および連絡先：' + ph(n1) + '（' + ph(p1) + '）',
+            '担当者氏名および連絡先：' + ph(n2) + '（' + ph(p2) + '）'];
   }
   function recv(){
     var d = get('rDate'), t = get('rTime'), ds = '●年●月●日（●）', ts = '●時●分';
