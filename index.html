@@ -530,6 +530,7 @@ mark.miss{background:none;color:var(--miss);font-weight:700}
   function typeChanged(from, to){
     if(from === 'start' && to !== 'start' && get('planB')){ set('doneB', get('planB')); set('contB', nextBlk(get('planB'))); }
     if(from === 'prog' && to === 'end' && get('contB')) set('doneB', get('contB'));
+    if(to === 'prog' && get('doneB')) set('contB', nextBlk(get('doneB'))); // 継続はいつも実施済の次の3時間から
     fillDefaults();
   }
 
@@ -644,10 +645,10 @@ mark.miss{background:none;color:var(--miss);font-weight:700}
     $('pvCcRow').hidden = !m.cc.length;
     $('cpCc').hidden = !m.cc.length;
     document.querySelector('.copies').classList.toggle('three', !m.cc.length);
-    $('pvSub').textContent = m.sub;
+    $('pvSub').innerHTML = marked(m.sub);
     $('pvBody').innerHTML = marked(m.body);
 
-    var miss = (m.body.match(/●/g) || []).length;
+    var miss = ((m.sub + m.body).match(/●/g) || []).length; // 件名の ●（方面の選び忘れ）も数える
     var st = $('status');
     if(!m.to.length){ st.className = 'status bad'; st.textContent = '宛先が入っていません。管理者から届いた設定入りリンクを開くか、上の「貼り付けて読み込む」に貼り付けてください。'; }
     else if(miss){ st.className = 'status bad'; st.textContent = 'あと ' + miss + ' か所、赤い ● が未入力です'; }
