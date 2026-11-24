@@ -57,7 +57,7 @@ with sync_playwright() as p:
     shot(pg, ['section:has([data-block=planB])'], '04_start.png')
     shot(pg, ['section:has(#status)'], '05_send.png')
     f = dict(base_form, type='end', result='ng', doneB='3', abnN='1', place1='生野区中川4丁目 〇〇付近',
-             what1='マンホールより水柱', cwo1='鈴木', act1='約10ｍ後方より自主警備実施（CWOと交代まで）')
+             what1='マンホールより水柱', cwo1='鈴木', call1='01:25', act1='CWOの指示で、約10ｍ後方より自主警備実施（CWOと交代まで）')
     pg = newpage(form=f, cfg_store=cfg)
     shot(pg, ['section:has([data-block=planB])'], '06_prog.png')
     pg = newpage(form=dict(base_form, rTime='', p2=''), cfg_store=cfg)

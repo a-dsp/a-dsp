@@ -242,66 +242,63 @@ mark.miss{background:none;color:var(--miss);font-weight:700}
   <section>
     <h2><span class="num">3</span>内容</h2>
 
-    <div data-for="start">
-      <span class="lbl">従事対応時間域（予報された3時間）</span>
-      <div class="seg c4 blocks" data-block="planB" role="radiogroup" aria-label="従事対応時間域"></div>
+    <p class="hint" data-for="prog">経過報告は、次の3時間も続けて出動するときに送ります（続けないときは「終了」）。</p>
+
+    <div data-for="start end">
+      <span class="lbl" data-for="start">従事対応時間域（予報された3時間）</span>
+      <span class="lbl" data-for="end">出動したときの3時間（その日の最初）</span>
+      <div class="seg c4 blocks" data-block="planB" role="radiogroup" aria-label="出動したときの時間域"></div>
     </div>
 
     <div data-for="prog end">
-      <span class="lbl" data-for="prog">実施済時間域（パトロールした3時間）</span>
-      <span class="lbl" data-for="end">実施済時間域（最後にパトロールした3時間）</span>
+      <span class="lbl" data-for="prog">実施済時間域（今回パトロールした3時間）</span>
+      <span class="lbl" data-for="end">最後にパトロールした3時間</span>
       <div class="seg c4 blocks" data-block="doneB" role="radiogroup" aria-label="実施済時間域"></div>
+      <p class="hint" data-for="prog" style="margin-top:6px">2回目の経過報告のときは、前回の継続時間域を選んでください。</p>
+      <p class="hint" data-for="end" style="margin-top:6px">メールの実施済時間域は、出動したときから最後までを通しで書きます（<b id="spanView"></b>）。</p>
     </div>
 
     <div data-for="prog end">
       <span class="lbl">結果報告</span>
       <div class="seg result">
-        <label data-for="end"><input type="radio" name="result" value="ok" id="r-ok">異常なし</label>
-        <label><input type="radio" name="result" value="ng" id="r-ng">異常あり（場所・内容・対応を入れる）</label>
+        <label><input type="radio" name="result" value="ok" id="r-ok">異常なし</label>
+        <label><input type="radio" name="result" value="ng" id="r-ng">異常あり（電話してから入れる）</label>
         <label><input type="radio" name="result" value="other" id="r-other">その他（自分で書く）</label>
       </div>
     </div>
     <div data-for="prog end" data-result="ng" class="stack">
+      <div class="banner bad" id="callFirst"></div>
       <input type="hidden" id="abnN" name="abnN" value="1">
       <div class="abn" id="abn1">
         <div class="abnhead"><b>異常 1件目</b></div>
-        <div><label for="place1">所在地</label><input type="text" id="place1" name="place1" placeholder="例）生野区中川4丁目 〇〇付近"></div>
+        <div><label for="place1">場所</label><input type="text" id="place1" name="place1" placeholder="例）生野区中川4丁目 〇〇付近"></div>
         <div><label for="what1">異常内容</label><input type="text" id="what1" name="what1" placeholder="例）マンホールより水柱"></div>
-        <div><label for="cwo1">連絡したCWO担当者（連絡したときだけ）</label><input type="text" id="cwo1" name="cwo1" placeholder="例）佐藤"></div>
-        <div><label for="act1"><span data-for="end">対応内容（連絡以外にしたこと）</span><span data-for="prog">対応内容・このあとの動き</span></label><textarea id="act1" name="act1" class="act" placeholder="例）約10ｍ後方より自主警備実施（CWOと交代まで）"></textarea><p class="hint" data-for="prog" style="margin-top:4px">したこと（連絡以外）と、報告のあと待機するか巡回に戻るかを書いてください。</p></div>
+        <div class="grid2"><div><label for="cwo1">電話したCWO担当者</label><input type="text" id="cwo1" name="cwo1" placeholder="例）佐藤"></div><div><label for="call1">電話の応答時刻</label><input type="time" id="call1" name="call1"></div></div>
+        <div><label for="act1">対応内容（指示されたこと・したこと）</label><textarea id="act1" name="act1" placeholder="例）CWOの指示で、約10ｍ後方より自主警備実施（CWOと交代まで）"></textarea></div>
       </div>
       <div class="abn" id="abn2" hidden>
         <div class="abnhead"><b>異常 2件目</b><button type="button" class="btn-x" data-del="2">この件を消す</button></div>
-        <div><label for="place2">所在地</label><input type="text" id="place2" name="place2" placeholder="例）生野区中川4丁目 〇〇付近"></div>
+        <div><label for="place2">場所</label><input type="text" id="place2" name="place2" placeholder="例）生野区中川4丁目 〇〇付近"></div>
         <div><label for="what2">異常内容</label><input type="text" id="what2" name="what2" placeholder="例）マンホールより水柱"></div>
-        <div><label for="cwo2">連絡したCWO担当者（連絡したときだけ）</label><input type="text" id="cwo2" name="cwo2" placeholder="例）佐藤"></div>
-        <div><label for="act2"><span data-for="end">対応内容（連絡以外にしたこと）</span><span data-for="prog">対応内容・このあとの動き</span></label><textarea id="act2" name="act2" class="act" placeholder="例）約10ｍ後方より自主警備実施（CWOと交代まで）"></textarea><p class="hint" data-for="prog" style="margin-top:4px">したこと（連絡以外）と、報告のあと待機するか巡回に戻るかを書いてください。</p></div>
+        <div class="grid2"><div><label for="cwo2">電話したCWO担当者</label><input type="text" id="cwo2" name="cwo2" placeholder="例）佐藤"></div><div><label for="call2">電話の応答時刻</label><input type="time" id="call2" name="call2"></div></div>
+        <div><label for="act2">対応内容（指示されたこと・したこと）</label><textarea id="act2" name="act2" placeholder="例）CWOの指示で、約10ｍ後方より自主警備実施（CWOと交代まで）"></textarea></div>
       </div>
       <div class="abn" id="abn3" hidden>
         <div class="abnhead"><b>異常 3件目</b><button type="button" class="btn-x" data-del="3">この件を消す</button></div>
-        <div><label for="place3">所在地</label><input type="text" id="place3" name="place3" placeholder="例）生野区中川4丁目 〇〇付近"></div>
+        <div><label for="place3">場所</label><input type="text" id="place3" name="place3" placeholder="例）生野区中川4丁目 〇〇付近"></div>
         <div><label for="what3">異常内容</label><input type="text" id="what3" name="what3" placeholder="例）マンホールより水柱"></div>
-        <div><label for="cwo3">連絡したCWO担当者（連絡したときだけ）</label><input type="text" id="cwo3" name="cwo3" placeholder="例）佐藤"></div>
-        <div><label for="act3"><span data-for="end">対応内容（連絡以外にしたこと）</span><span data-for="prog">対応内容・このあとの動き</span></label><textarea id="act3" name="act3" class="act" placeholder="例）約10ｍ後方より自主警備実施（CWOと交代まで）"></textarea><p class="hint" data-for="prog" style="margin-top:4px">したこと（連絡以外）と、報告のあと待機するか巡回に戻るかを書いてください。</p></div>
+        <div class="grid2"><div><label for="cwo3">電話したCWO担当者</label><input type="text" id="cwo3" name="cwo3" placeholder="例）佐藤"></div><div><label for="call3">電話の応答時刻</label><input type="time" id="call3" name="call3"></div></div>
+        <div><label for="act3">対応内容（指示されたこと・したこと）</label><textarea id="act3" name="act3" placeholder="例）CWOの指示で、約10ｍ後方より自主警備実施（CWOと交代まで）"></textarea></div>
       </div>
       <button type="button" class="btn-add" id="addAbn">＋ 異常をもう1件追加（3件まで）</button>
       <p class="hint">写真は、メールの画面が開いたあとに添付してください。</p>
     </div>
     <div data-for="prog end" data-result="other">
-      <label for="other">結果報告の内容</label>
+      <label for="other">結果報告の内容（事象に応じた報告）</label>
       <textarea id="other" name="other" placeholder="起きたことをそのまま書いてください"></textarea>
     </div>
-    <div data-for="end">
-      <label for="endNote">継続して出動したときの一言（なければ空のまま）</label>
-      <textarea id="endNote" name="endNote" placeholder="例）12:00から継続して巡回し、18:00に終了しました。"></textarea>
-      <p class="hint" style="margin-top:4px">経過報告で「継続あり」にしていたときは、自動で入ります（直せます）。メールには「備考」として入ります。</p>
-    </div>
 
-    <div data-for="prog" class="staff">
-      <label class="check"><input type="checkbox" id="contOn" name="contOn">次の3時間も続けて出動する（継続あり）</label>
-      <p class="hint">続けて出動するときだけチェックします。チェックすると、継続時間域と継続の担当者がメールに入ります。</p>
-    </div>
-    <div data-for="prog" class="stack" id="contArea">
+    <div data-for="prog" class="stack">
       <div>
         <span class="lbl">継続時間域（次の3時間）</span>
         <div class="seg c4 blocks" data-block="contB" role="radiogroup" aria-label="継続時間域"></div>
@@ -353,7 +350,7 @@ mark.miss{background:none;color:var(--miss);font-weight:700}
   var KEY = 'rainReport.form.v1';
   var CFG = 'rainReport.cfg.v1';
   var FIELDS = ['me','area','rDate','rTime','n1','p1','n2','p2','type',
-    'planB','doneB','result','abnN','place1','what1','cwo1','act1','place2','what2','cwo2','act2','place3','what3','cwo3','act3','other','contOn','contSame','cn1','cp1','cn2','cp2','contB','endNote'];
+    'planB','doneB','result','abnN','place1','what1','cwo1','call1','act1','place2','what2','cwo2','call2','act2','place3','what3','cwo3','call3','act3','other','contSame','cn1','cp1','cn2','cp2','contB'];
   var WD = ['日','月','火','水','木','金','土'];
   var TITLE = { start:'業務開始報告', prog:'業務実施状況（継続・経過報告）', end:'業務終了報告' };
   var KUBUN = { start:'業務開始報告', prog:'継続・経過報告', end:'業務終了報告' };
@@ -506,7 +503,7 @@ mark.miss{background:none;color:var(--miss);font-weight:700}
   if(s.place && s.place1 === undefined) set('place1', s.place);
   if(s.cwo && s.cwo1 === undefined) set('cwo1', s.cwo);
   if(!(+get('abnN') >= 1)) set('abnN', '1');
-  if(!get('area')) set('area','東部方面');
+  // 方面は最初から選ばない（東部・南部が同時に出動するので、選び忘れたら ● で気づけるように）
   if(!get('type')) set('type','start');
   if(!get('result')) set('result','ok');
   if(s.contSame === undefined) set('contSame', true);
@@ -526,23 +523,34 @@ mark.miss{background:none;color:var(--miss);font-weight:700}
     var t = get('type');
     if(!get('planB')) set('planB', blkAfter(get('rTime')));
     if(t !== 'start' && !get('doneB')) set('doneB', get('planB'));
-    if(t === 'prog' && get('contOn') && !get('contB')) set('contB', nextBlk(get('doneB')));
-    if(t === 'prog' && get('result') === 'ok') set('result', 'ng'); // 経過は異常なしを使わない（異常なしは終了報告で）
+    if(t === 'prog' && !get('contB')) set('contB', nextBlk(get('doneB')));
+  }
+  // 報告を切り替えたとき：出動 → 経過 → 経過 … → 終了 の流れに合わせて時間域を進める
+  //   出動→経過・終了：実施済＝出動の3時間　経過→終了：最後の3時間＝経過の継続時間域
+  function typeChanged(from, to){
+    if(from === 'start' && to !== 'start' && get('planB')){ set('doneB', get('planB')); set('contB', nextBlk(get('planB'))); }
+    if(from === 'prog' && to === 'end' && get('contB')) set('doneB', get('contB'));
+    fillDefaults();
   }
 
   // ---- build mail ----
   function ph(v){ return v ? v : '●'; }
   function staffLines(n1,p1,n2,p2){
     // 担当者は必ず2名。空なら ● を出して未入力として数える
-    return ['担当者氏名および連絡先：' + ph(n1) + '（' + ph(p1) + '）',
-            '担当者氏名および連絡先：' + ph(n2) + '（' + ph(p2) + '）'];
+    return ['担当者氏名および連絡先：' + ph(n1) + '〈' + ph(p1) + '〉',
+            '担当者氏名および連絡先：' + ph(n2) + '〈' + ph(p2) + '〉'];
+  }
+  // 終了報告の実施済時間域：出動したときの3時間の始まり～最後の3時間の終わり（例：06:00～15:00）
+  function spanBlk(a, b){
+    if(a === '' || b === '') return '●～●';
+    return hhmm(+a) + '～' + hhmm(+b + 3);
   }
   function recv(){
     var d = get('rDate'), t = get('rTime'), ds = '●年●月●日（●）', ts = '●時●分';
     if(d){ var p = d.split('-'); var dt = new Date(+p[0], +p[1]-1, +p[2]);
       ds = p[0]+'年'+(+p[1])+'月'+(+p[2])+'日（'+WD[dt.getDay()]+'）'; }
     if(t){ var q = t.split(':'); ts = (+q[0])+'時'+q[1]+'分'; }
-    return ds + ' ' + ts;
+    return ds + ts;
   }
   function abnCount(){ var n = +get('abnN'); return (n >= 1 && n <= 3) ? n : 1; }
   function showAbn(){
@@ -550,44 +558,46 @@ mark.miss{background:none;color:var(--miss);font-weight:700}
     for(var i=1;i<=3;i++) $('abn'+i).hidden = i > n;
     $('addAbn').hidden = n >= 3;
   }
+  function hm(t){ if(!t) return '●時●分'; var q = t.split(':'); return (+q[0]) + '時' + q[1] + '分'; }
   function resultText(){
     var r = get('result');
-    // 案文は使わず、入力したものだけを並べる（所在地・異常内容は必須、CWO担当者・対応内容は入れたときだけ）
+    // 案文の例①（異常なし）・例②（異常あり）・例③（その他）。
+    // 例②のあとに、CWOから求められた「異常内容・電話の応答時刻・対応内容」を足す（すべて必須）
     if(r === 'ng'){
       var n = abnCount(), L = [];
       for(var i=1;i<=n;i++){
         if(n > 1) L.push('【' + i + '件目】');
-        L.push('所在地：' + ph(get('place'+i)), '異常内容：' + ph(get('what'+i)));
-        if(get('cwo'+i)) L.push('連絡したCWO担当者：' + get('cwo'+i));
-        if(get('act'+i)) L.push('対応内容：' + get('act'+i));
+        L.push('パトロールを実施した結果、' + ph(get('place'+i)) + 'にて下水道施設に異常がある事を発見しましたので、CWO担当者' + ph(get('cwo'+i)) + '様に連絡し対応図ってもらいました。',
+               '異常内容：' + ph(get('what'+i)),
+               '電話応答時刻：' + hm(get('call'+i)),
+               '対応内容：' + ph(get('act'+i)));
       }
       return L.join('\n');
     }
     if(r === 'other') return ph(get('other'));
-    return '異常なし';
+    return 'パトロールを実施した結果、道路及び道路上の下水道施設については、異常が見受けられませんでした。';
   }
   function build(){
     var t = get('type');
-    var sub = '[' + get('area') + ']「' + TITLE[t] + '」について' + CONTRACT;
+    // 文面は運用マニュアルの案文どおり（開始だけ「次の内容で」、経過・終了は「次内容で」）
+    var sub = '[' + ph(get('area')) + ']「' + TITLE[t] + '」について' + CONTRACT;
     var staff = staffLines(get('n1'),get('p1'),get('n2'),get('p2'));
     var L = ['関係各位','','いつもお世話になっております。', (cfg.company || DEFAULT_COMPANY) + 'の' + ph(get('me')) + 'です。','',
-      '首記の件、' + recv() + 'に出動通知の受信に従って、次の内容で報告致します。',
+      '首記の件、' + recv() + 'に出動通知の受信に従って、' + (t === 'start' ? '次の内容で' : '次内容で') + '報告致します。',
       '報告区分：' + KUBUN[t]];
     if(t === 'start'){
       L.push('従事対応時間域：' + blk(get('planB')));
       L = L.concat(staff);
     } else {
       if(t === 'prog') L.push('');
-      L.push('実施済時間域：' + blk(get('doneB')));
+      L.push('実施済時間域：' + (t === 'end' ? spanBlk(get('planB'), get('doneB')) : blk(get('doneB'))));
       L = L.concat(staff);
-      if(get('result') === 'ok') L.push('結果報告：' + resultText());
-      else L.push('結果報告：', resultText());
-      if(t === 'prog' && get('contOn')){ // 続けて出動するときだけ
+      L.push('結果報告：', resultText());
+      if(t === 'prog'){ // 経過報告は必ず継続あり（次の3時間の開始報告を兼ねる）
         L.push('', '継続時間域：' + blk(get('contB')));
         L = L.concat(get('contSame') ? staff : staffLines(get('cn1'),get('cp1'),get('cn2'),get('cp2')));
       }
     }
-    if(t === 'end' && get('endNote')) L.push('', '備考：' + get('endNote'));
     L.push('', '以上、ご確認のほどよろしくお願いいたします。');
     return { to: cfg.to.slice(), cc: cfg.cc.slice(), sub: sub, body: L.join('\n') };
   }
@@ -596,6 +606,7 @@ mark.miss{background:none;color:var(--miss);font-weight:700}
   function marked(x){ return esc(x).replace(/●/g,'<mark class="miss">●</mark>'); }
 
   var current = null;
+  var lastType = get('type'); // 報告を切り替える前の種類（時間域を流れに合わせて進めるため）
   function render(){
     var t = get('type');
     document.body.setAttribute('data-type', t);
@@ -608,11 +619,8 @@ mark.miss{background:none;color:var(--miss);font-weight:700}
       el.hidden = !show;
     });
     $('contStaff').hidden = !!get('contSame');
-    document.querySelectorAll('textarea.act').forEach(function(a){ // 経過は「このあとの動き」も書く
-      a.placeholder = t === 'prog' ? '例）約10ｍ後方より自主警備実施（CWOと交代まで）。報告後は巡回に戻ります。'
-                                   : '例）約10ｍ後方より自主警備実施（CWOと交代まで）';
-    });
-    if(!get('contOn')) $('contArea').hidden = true;
+    $('callFirst').textContent = 'メールを送る前に、まず' + (get('area') || '担当の方面') + 'のエリアマネージャーに電話して、指示をもらってください。';
+    $('spanView').textContent = spanBlk(get('planB'), get('doneB'));
     document.querySelectorAll('[data-set]').forEach(function(b){ // 今の値と同じボタンに色を付ける
       var on = get(b.getAttribute('data-set')) === b.getAttribute('data-v');
       b.classList.toggle('on', on); b.setAttribute('aria-pressed', on ? 'true' : 'false');
@@ -657,12 +665,8 @@ mark.miss{background:none;color:var(--miss);font-weight:700}
     var nm = e.target.name;
     if(nm === 'doneB') set('contB', nextBlk(get('doneB')));
     if(nm === 'rTime') recvChanged();
-    // 継続ありの経過報告から終了に切り替えたとき：実施済を継続のブロックに合わせ、備考に一言入れる
-    if(nm === 'type' && get('type') === 'end' && get('contOn') && get('contB')){
-      set('doneB', get('contB'));
-      if(!get('endNote') && get('planB')) set('endNote', hhmm(+get('planB')) + 'から継続して巡回し、' + hhmm(+get('doneB') + 3) + 'に終了しました。');
-    }
-    if(nm === 'type' || nm === 'planB' || nm === 'contOn') fillDefaults();
+    if(nm === 'type'){ typeChanged(lastType, get('type')); lastType = get('type'); }
+    if(nm === 'planB') fillDefaults();
     render();
   });
   document.querySelectorAll('[data-set]').forEach(function(b){
@@ -675,7 +679,7 @@ mark.miss{background:none;color:var(--miss);font-weight:700}
   });
 
   // abnormal items
-  var AK = ['place','what','cwo','act'];
+  var AK = ['place','what','cwo','call','act'];
   $('addAbn').addEventListener('click', function(){
     var n = abnCount(); if(n >= 3) return;
     set('abnN', String(n+1)); render();
@@ -701,10 +705,9 @@ mark.miss{background:none;color:var(--miss);font-weight:700}
     clearTimeout(armTimer); rb.classList.remove('arm'); rb.textContent = rbText;
     set('rDate', nowParts().date);
     ['rTime','planB','doneB','contB','other'].forEach(function(k){ set(k,''); });
-    set('contOn', false); set('endNote', '');
     [1,2,3].forEach(function(i){ AK.forEach(function(k){ set(k+i,''); }); });
     set('abnN','1');
-    set('result','ok'); set('type','start');
+    set('result','ok'); set('type','start'); lastType = 'start';
     fillDefaults(); render();
   });
 
