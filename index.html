@@ -417,7 +417,7 @@ mark.miss{background:none;color:var(--miss);font-weight:700}
     render(); window.scrollTo(0, 0);
   });
   function showBanner(msg, bad){
-    var b = $('banner'); b.textContent = msg; b.hidden = false;
+    var b = $('banner'); b.textContent = (b.hidden ? '' : b.textContent + ' ') + msg; b.hidden = false;
     if(bad){ b.style.borderColor = 'var(--miss)'; b.style.color = 'var(--miss)'; }
   }
 
@@ -472,7 +472,11 @@ mark.miss{background:none;color:var(--miss);font-weight:700}
     if(e.type === 'checkbox'){ e.checked = !!v; return; }
     e.value = (v == null ? '' : v);
   }
-  function save(){ var o = {}; FIELDS.forEach(function(k){ o[k] = get(k); }); lsSet(KEY, o); }
+  // _t は最後に入力した時刻（開いただけでは更新しない）。12時間たったら前回の時刻と内容を消すのに使う
+  var STALE = 12 * 60 * 60 * 1000;
+  var lastT = Date.now();
+  function touch(){ lastT = Date.now(); }
+  function save(){ var o = { _t: lastT }; FIELDS.forEach(function(k){ o[k] = get(k); }); lsSet(KEY, o); }
   function pad(n){ return (n<10?'0':'') + n; }
   function nowParts(){
     var d = new Date();
@@ -499,6 +503,7 @@ mark.miss{background:none;color:var(--miss);font-weight:700}
 
   // ---- init form ----
   var s = lsGet(KEY) || {};
+  if(+s._t) lastT = +s._t; // 前の版で保存した端末は _t がないので、今から数え始める
   FIELDS.forEach(function(k){ if(s[k] !== undefined) set(k, s[k]); });
   if(s.place && s.place1 === undefined) set('place1', s.place);
   if(s.cwo && s.cwo1 === undefined) set('cwo1', s.cwo);
@@ -660,9 +665,10 @@ mark.miss{background:none;color:var(--miss);font-weight:700}
     save();
   }
 
-  document.addEventListener('input', function(e){ if(!$('admin').contains(e.target)) render(); });
+  document.addEventListener('input', function(e){ if(!$('admin').contains(e.target)){ touch(); render(); } });
   document.addEventListener('change', function(e){
     if($('admin').contains(e.target)) return;
+    touch();
     var nm = e.target.name;
     if(nm === 'doneB') set('contB', nextBlk(get('doneB')));
     if(nm === 'rTime') recvChanged();
@@ -673,7 +679,7 @@ mark.miss{background:none;color:var(--miss);font-weight:700}
   document.querySelectorAll('[data-set]').forEach(function(b){
     b.addEventListener('click', function(){
       var k = b.getAttribute('data-set');
-      set(k, b.getAttribute('data-v'));
+      set(k, b.getAttribute('data-v')); touch();
       if(k === 'rTime') recvChanged(); else fillDefaults();
       render();
     });
@@ -683,7 +689,7 @@ mark.miss{background:none;color:var(--miss);font-weight:700}
   var AK = ['place','what','cwo','call','act'];
   $('addAbn').addEventListener('click', function(){
     var n = abnCount(); if(n >= 3) return;
-    set('abnN', String(n+1)); render();
+    set('abnN', String(n+1)); touch(); render();
     var f = $('place'+(n+1)); if(f) f.focus();
   });
   document.querySelectorAll('[data-del]').forEach(function(b){
@@ -691,7 +697,7 @@ mark.miss{background:none;color:var(--miss);font-weight:700}
       var d = +b.getAttribute('data-del'), n = abnCount();
       for(var i=d;i<n;i++) AK.forEach(function(k){ set(k+i, get(k+(i+1))); });
       AK.forEach(function(k){ set(k+n, ''); });
-      set('abnN', String(Math.max(1, n-1))); render();
+      set('abnN', String(Math.max(1, n-1))); touch(); render();
     });
   });
 
@@ -704,12 +710,34 @@ mark.miss{background:none;color:var(--miss);font-weight:700}
       return;
     }
     clearTimeout(armTimer); rb.classList.remove('arm'); rb.textContent = rbText;
+    clearEvent(); touch(); render();
+  });
+  // 時刻と内容を消す（名前・担当者・方面・継続の担当者は残す）
+  function clearEvent(){
     set('rDate', nowParts().date);
     ['rTime','planB','doneB','contB','other'].forEach(function(k){ set(k,''); });
     [1,2,3].forEach(function(i){ AK.forEach(function(k){ set(k+i,''); }); });
     set('abnN','1');
     set('result','ok'); set('type','start'); lastType = 'start';
-    fillDefaults(); render();
+    fillDefaults();
+  }
+  // 最後の入力から12時間たって開いたら、前回の出動の時刻と内容を消す（「新しい出動にする」の押し忘れ対策）
+  // 開いたときのほか、開きっぱなしのタブに戻ってきたときも確かめる
+  function checkStale(){
+    if(Date.now() - lastT <= STALE) return false;
+    var had = get('rTime') || get('type') !== 'start' || get('result') !== 'ok' || get('other') ||
+      [1,2,3].some(function(i){ return AK.some(function(k){ return get(k+i); }); });
+    clearEvent(); touch();
+    if(had) showBanner('前回の入力から12時間以上たったので、時刻と報告の内容を消しました（名前・担当者・方面は残っています）。');
+    return true;
+  }
+  checkStale();
+  document.addEventListener('visibilitychange', function(){
+    if(document.visibilityState !== 'visible') return;
+    // 別のタブで入力していたら、こちらの古い内容で上書きしないように読み直す
+    var st = lsGet(KEY) || {};
+    if(+st._t > lastT){ location.reload(); return; }
+    if(checkStale()){ render(); window.scrollTo(0, 0); }
   });
 
   // copy
