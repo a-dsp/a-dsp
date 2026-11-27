@@ -1,7 +1,7 @@
 """ガイドを印刷用PDFにする。
 
 使い方（リポジトリの直下で）: python3 tools/build_pdf.py [出力先フォルダ]
-出力: 雨天出動_報告メール_使い方.pdf / 雨天出動_報告メール_管理者向け.pdf（既定は dist/）
+出力: 雨天出動_報告メール_使い方.pdf / 雨天出動_報告メール_管理者向け.pdf / 雨天出動_報告の手順.pdf（既定は dist/）
 フォントの前提は tools/shots.py と同じ。
 """
 import re, sys, pathlib
@@ -19,7 +19,8 @@ with sync_playwright() as p:
     b = p.chromium.launch(args=['--lang=ja-JP'])
     ctx = b.new_context(locale='ja-JP', color_scheme='light')
     if css: ctx.route(re.compile(r'https://fonts\.(googleapis|gstatic)\.com/.*'), lambda r: r.abort())
-    for src, name in ((ROOT / 'guide.html', '雨天出動_報告メール_使い方.pdf'), (ROOT / 'docs' / 'admin.html', '雨天出動_報告メール_管理者向け.pdf')):
+    for src, name in ((ROOT / 'guide.html', '雨天出動_報告メール_使い方.pdf'), (ROOT / 'docs' / 'admin.html', '雨天出動_報告メール_管理者向け.pdf'),
+                      (ROOT / 'docs' / 'flow.html', '雨天出動_報告の手順.pdf')):
         pg = ctx.new_page(); pg.goto(src.as_uri())
         if css: pg.add_style_tag(content=css)
         pg.wait_for_timeout(800); pg.emulate_media(media='print')
